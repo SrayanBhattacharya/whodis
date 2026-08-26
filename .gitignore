@@ -1,0 +1,126 @@
+# ============================================================
+# WhoDis - Root Git Ignore
+# ============================================================
+
+# ------------------------------------------------------------
+# Environment / Secrets
+# ------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ------------------------------------------------------------
+# OS files
+# ------------------------------------------------------------
+.DS_Store
+Thumbs.db
+
+# ------------------------------------------------------------
+# IDEs / Editors
+# ------------------------------------------------------------
+.idea/
+.vscode/
+*.iml
+
+# ------------------------------------------------------------
+# Java / Spring Boot / Maven
+# ------------------------------------------------------------
+backend/target/
+backend/.mvn/timing.properties
+
+# Maven wrapper JAR is normally safe to commit
+# backend/.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot generated files
+*.log
+
+# ------------------------------------------------------------
+# Next.js
+# ------------------------------------------------------------
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.vercel/
+
+# Next.js debug logs
+frontend/npm-debug.log*
+frontend/yarn-debug.log*
+frontend/yarn-error.log*
+frontend/pnpm-debug.log*
+
+# ------------------------------------------------------------
+# Python / FastAPI / ML
+# ------------------------------------------------------------
+ml-service/__pycache__/
+ml-service/**/*.py[cod]
+ml-service/.pytest_cache/
+ml-service/.mypy_cache/
+ml-service/.ruff_cache/
+ml-service/.venv/
+ml-service/venv/
+ml-service/env/
+
+# Python packaging
+ml-service/build/
+ml-service/dist/
+ml-service/*.egg-info/
+
+# Jupyter
+ml/**/*.ipynb_checkpoints/
+ml/**/.ipynb_checkpoints/
+
+# ------------------------------------------------------------
+# ML artifacts
+# ------------------------------------------------------------
+ml-service/models/
+ml-service/weights/
+ml-service/checkpoints/
+
+ml/experiments/**/outputs/
+ml/experiments/**/runs/
+ml/benchmarks/**/outputs/
+
+# Large model files
+*.pt
+*.pth
+*.onnx
+*.safetensors
+*.ckpt
+
+# ------------------------------------------------------------
+# Local application data
+# ------------------------------------------------------------
+storage/
+uploads/
+tmp/
+temp/
+
+# ------------------------------------------------------------
+# Docker
+# ------------------------------------------------------------
+docker/*.log
+
+# ------------------------------------------------------------
+# Test / Coverage
+# ------------------------------------------------------------
+coverage/
+.pytest_cache/
+htmlcov/
+
+# Java coverage
+backend/**/jacoco.exec
+backend/**/jacoco/
+
+# ------------------------------------------------------------
+# Generated archives
+# ------------------------------------------------------------
+*.zip
+*.tar
+*.tar.gz
+
+# ------------------------------------------------------------
+# Database dumps
+# ------------------------------------------------------------
+*.sql.gz
+*.dump
+*.bak
