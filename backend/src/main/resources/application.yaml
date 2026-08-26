@@ -18,6 +18,10 @@ spring:
   flyway:
     enabled: true
 
+whodis:
+  session:
+    duration: ${SESSION_DURATION:10s}
+
 management:
   endpoints:
     web:

@@ -30,4 +30,8 @@ public class Session {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private SessionStatus status;
+
+    public boolean isExpired() {
+        return Instant.now().isAfter(expiresAt);
+    }
 }
