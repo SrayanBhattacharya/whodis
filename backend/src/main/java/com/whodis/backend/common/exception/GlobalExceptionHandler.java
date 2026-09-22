@@ -1,9 +1,12 @@
 package com.whodis.backend.common.exception;
 
+import com.whodis.backend.person.service.DuplicatePersonException;
+import com.whodis.backend.person.service.PersonNotFoundException;
 import com.whodis.backend.session.service.SessionExpiredException;
 import com.whodis.backend.session.service.SessionNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -42,6 +45,61 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.GONE)
+                .body(response);
+    }
+
+    @ExceptionHandler(PersonNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handlePersonNotFound(
+            PersonNotFoundException exception
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "PERSON_NOT_FOUND",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
+    @ExceptionHandler(DuplicatePersonException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicatePerson(
+            DuplicatePersonException exception
+    ) {
+        ApiErrorResponse response = new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "DUPLICATE_PERSON",
+                exception.getMessage()
+        );
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ApiErrorResponse> handleValidationError(
+            MethodArgumentNotValidException exception
+    ) {
+        String message = exception.getBindingResult()
+                .getFieldErrors()
+                .stream()
+                .findFirst()
+                .map(error -> error.getDefaultMessage())
+                .orElse("Invalid request");
+
+        ApiErrorResponse response = new ApiErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "VALIDATION_ERROR",
+                message
+        );
+
+        return ResponseEntity
+                .badRequest()
                 .body(response);
     }
 }

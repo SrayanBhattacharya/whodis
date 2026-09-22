@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/sessions/001257d9-89db-4e0a-b890-2b79e687d165"
+  url: "{{baseUrl}}/sessions/82f27fa0-0e17-4078-91ca-bff9a2bb903e"
   auth: inherit
 
 settings:

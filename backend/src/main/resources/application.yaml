@@ -20,7 +20,7 @@ spring:
 
 whodis:
   session:
-    duration: ${SESSION_DURATION:10s}
+    duration: ${SESSION_DURATION:24h}
 
 management:
   endpoints:

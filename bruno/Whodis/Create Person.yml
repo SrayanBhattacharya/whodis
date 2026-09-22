@@ -1,0 +1,21 @@
+info:
+  name: Create Person
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: "{{baseUrl}}/sessions/82f27fa0-0e17-4078-91ca-bff9a2bb903e/people"
+  body:
+    type: json
+    data: |-
+      {
+        "name": "Srayan"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
