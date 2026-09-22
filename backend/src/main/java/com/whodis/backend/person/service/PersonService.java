@@ -5,11 +5,13 @@ import com.whodis.backend.person.entity.Person;
 import com.whodis.backend.person.repository.PersonRepository;
 import com.whodis.backend.session.entity.Session;
 import com.whodis.backend.session.service.SessionService;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -38,5 +40,24 @@ public class PersonService {
         );
 
         return personRepository.save(person);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Person> getPeople(UUID sessionId) {
+        sessionService.getSession(sessionId);
+
+        return personRepository.findAllBySessionIdOrderByCreatedAtAsc(sessionId);
+    }
+
+    @Transactional(readOnly = true)
+    public Person getPerson(
+            UUID sessionId,
+            UUID personId
+    ) {
+        sessionService.getSession(sessionId);
+
+        return personRepository
+                .findByIdAndSessionId(personId, sessionId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
     }
 }

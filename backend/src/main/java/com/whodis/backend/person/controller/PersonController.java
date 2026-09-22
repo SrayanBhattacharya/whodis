@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -33,5 +34,31 @@ public class PersonController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(PersonResponse.from(person));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PersonResponse>> getPeople(
+            @PathVariable UUID sessionId
+    ) {
+        List<PersonResponse> people = personService
+                .getPeople(sessionId)
+                .stream()
+                .map(PersonResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(people);
+    }
+
+    @GetMapping("/{personId}")
+    public ResponseEntity<PersonResponse> getPerson(
+            @PathVariable UUID sessionId,
+            @PathVariable UUID personId
+    ) {
+        Person person = personService.getPerson(
+                sessionId,
+                personId
+        );
+
+        return ResponseEntity.ok(PersonResponse.from(person));
     }
 }

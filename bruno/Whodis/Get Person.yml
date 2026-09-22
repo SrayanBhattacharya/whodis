@@ -1,0 +1,15 @@
+info:
+  name: Get Person
+  type: http
+  seq: 4
+
+http:
+  method: GET
+  url: "{{baseUrl}}/sessions/82f27fa0-0e17-4078-91ca-bff9a2bb903e/people/d2a527e9-abf1-4ce8-9704-80fc294151ef"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
