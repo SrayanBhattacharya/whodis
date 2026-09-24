@@ -22,6 +22,9 @@ whodis:
   session:
     duration: ${SESSION_DURATION:24h}
 
+  storage:
+    root: ${STORAGE_ROOT:./storage}
+
 management:
   endpoints:
     web:
