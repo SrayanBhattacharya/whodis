@@ -1,0 +1,22 @@
+info:
+  name: Upload Image
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: "{{baseUrl}}/sessions/0c2cd457-7603-4605-ab95-793387616ad9/people/c122485b-b0a2-40d8-b6e1-b000b49c78e0/reference-images"
+  body:
+    type: multipart-form
+    data:
+      - name: file
+        type: file
+        value:
+          - /home/srayan/Pictures/DSC_0732.jpg
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
