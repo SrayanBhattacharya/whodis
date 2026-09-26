@@ -12,7 +12,7 @@ http:
       - name: file
         type: file
         value:
-          - /home/srayan/Pictures/DSC_0732.jpg
+          - /home/srayan/Pictures/new-gta-6-artwork-v0-w867zmq3vqlh1.webp
   auth: inherit
 
 settings:

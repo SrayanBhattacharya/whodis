@@ -23,7 +23,6 @@ public class ReferenceImageService {
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg",
-            "image/jpg",
             "image/png",
             "image/webp"
     );
@@ -31,13 +30,14 @@ public class ReferenceImageService {
     private final ReferenceImageRepository referenceImageRepository;
     private final PersonRepository personRepository;
     private final StorageService storageService;
+    private final ImageValidationService imageValidationService;
 
     public ReferenceImage uploadReferenceImage(
             UUID sessionId,
             UUID personId,
             MultipartFile file
     ) {
-        validateFile(file);
+        imageValidationService.validate(file);
 
         Person person = personRepository
                 .findByIdAndSessionId(personId, sessionId)
@@ -67,26 +67,6 @@ public class ReferenceImageService {
         } catch (RuntimeException e) {
             cleanupStoredFile(storageKey);
             throw e;
-        }
-    }
-
-    private void validateFile(MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new InvalidImageException("File must not be empty");
-        }
-
-        if (file.getSize() > MAX_FILE_SIZE) {
-            throw new InvalidImageException(
-                    "File size must not exceed 10 MB"
-            );
-        }
-
-        String contentType = file.getContentType();
-
-        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType)) {
-            throw new InvalidImageException(
-                    "Only JPEG, JPG, PNG, and WebP images are supported"
-            );
         }
     }
 
