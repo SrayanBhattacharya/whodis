@@ -3,6 +3,7 @@ package com.whodis.backend.common.exception;
 import com.whodis.backend.person.service.DuplicatePersonException;
 import com.whodis.backend.person.service.PersonNotFoundException;
 import com.whodis.backend.referenceimage.service.InvalidImageException;
+import com.whodis.backend.referenceimage.service.ReferenceImageNotFoundException;
 import com.whodis.backend.session.service.SessionExpiredException;
 import com.whodis.backend.session.service.SessionNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -114,6 +115,20 @@ public class GlobalExceptionHandler {
                         Instant.now(),
                         HttpStatus.BAD_REQUEST.value(),
                         "INVALID_IMAGE",
+                        exception.getMessage()
+                ));
+    }
+
+    @ExceptionHandler(ReferenceImageNotFoundException.class)
+    public ResponseEntity<ApiErrorResponse> handleReferenceImageNotFound(
+            ReferenceImageNotFoundException exception
+    ) {
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(new ApiErrorResponse(
+                        Instant.now(),
+                        HttpStatus.NOT_FOUND.value(),
+                        "REFERENCE_IMAGE_NOT_FOUND",
                         exception.getMessage()
                 ));
     }

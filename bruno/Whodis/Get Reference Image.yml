@@ -1,0 +1,15 @@
+info:
+  name: Get Reference Image
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: "{{baseUrl}}/sessions/9fac1940-cce9-4d33-be18-4d7584f5045a/people/e6b0d795-afb1-485f-92d8-cc383da5812b/reference-images/1fcb9983-590d-453b-9bd5-821938c89de6"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

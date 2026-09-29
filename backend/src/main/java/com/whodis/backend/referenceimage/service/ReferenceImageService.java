@@ -5,14 +5,17 @@ import com.whodis.backend.person.repository.PersonRepository;
 import com.whodis.backend.person.service.PersonNotFoundException;
 import com.whodis.backend.referenceimage.entity.ReferenceImage;
 import com.whodis.backend.referenceimage.repository.ReferenceImageRepository;
+import com.whodis.backend.session.service.SessionService;
 import com.whodis.backend.storage.service.StorageException;
 import com.whodis.backend.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -31,6 +34,7 @@ public class ReferenceImageService {
     private final PersonRepository personRepository;
     private final StorageService storageService;
     private final ImageValidationService imageValidationService;
+    private final SessionService sessionService;
 
     public ReferenceImage uploadReferenceImage(
             UUID sessionId,
@@ -68,6 +72,56 @@ public class ReferenceImageService {
             cleanupStoredFile(storageKey);
             throw e;
         }
+    }
+
+    @Transactional(readOnly = true)
+    public List<ReferenceImage> getReferenceImages(
+            UUID sessionId,
+            UUID personId
+    ) {
+        sessionService.getSession(sessionId);
+
+        personRepository.findByIdAndSessionId(personId, sessionId)
+                .orElseThrow(() -> new ReferenceImageNotFoundException(personId));
+
+        return referenceImageRepository
+                .findAllByPersonIdOrderByCreatedAtAsc(personId);
+    }
+
+    @Transactional(readOnly = true)
+    public ReferenceImage getReferenceImage(
+            UUID sessionId,
+            UUID personId,
+            UUID imageId
+    ) {
+        sessionService.getSession(sessionId);
+
+        personRepository.findByIdAndSessionId(personId, sessionId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
+
+        return referenceImageRepository
+                .findByIdAndPersonId(imageId, personId)
+                .orElseThrow(() -> new ReferenceImageNotFoundException(imageId));
+    }
+
+    @Transactional
+    public void deleteReferenceImage(
+            UUID sessionId,
+            UUID personId,
+            UUID imageId
+    ) {
+        sessionService.getSession(sessionId);
+
+        personRepository.findByIdAndSessionId(personId, sessionId)
+                .orElseThrow(() -> new PersonNotFoundException(personId));
+
+        ReferenceImage image = referenceImageRepository
+                .findByIdAndPersonId(imageId, personId)
+                .orElseThrow(() -> new ReferenceImageNotFoundException(imageId));
+
+        storageService.delete(image.getStorageKey());
+
+        referenceImageRepository.delete(image);
     }
 
     private void cleanupStoredFile(String storageKey) {

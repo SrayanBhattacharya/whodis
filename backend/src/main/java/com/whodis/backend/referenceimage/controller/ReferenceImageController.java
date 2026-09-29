@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -34,5 +35,51 @@ public class ReferenceImageController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(ReferenceImageResponse.from(referenceImage));
+    }
+
+    @GetMapping
+    public ResponseEntity<List<ReferenceImageResponse>> getReferenceImages(
+            @PathVariable UUID sessionId,
+            @PathVariable UUID personId
+    ) {
+        List<ReferenceImageResponse> images = referenceImageService
+                .getReferenceImages(sessionId, personId)
+                .stream()
+                .map(ReferenceImageResponse::from)
+                .toList();
+
+        return ResponseEntity.ok(images);
+    }
+
+    @GetMapping("/{imageId}")
+    public ResponseEntity<ReferenceImageResponse> getReferenceImage(
+            @PathVariable UUID sessionId,
+            @PathVariable UUID personId,
+            @PathVariable UUID imageId
+    ) {
+        ReferenceImage image = referenceImageService.getReferenceImage(
+                sessionId,
+                personId,
+                imageId
+        );
+
+        return ResponseEntity.ok(
+                ReferenceImageResponse.from(image)
+        );
+    }
+
+    @DeleteMapping("/{imageId}")
+    public ResponseEntity<Void> deleteReferenceImage(
+            @PathVariable UUID sessionId,
+            @PathVariable UUID personId,
+            @PathVariable UUID imageId
+    ) {
+        referenceImageService.deleteReferenceImage(
+                sessionId,
+                personId,
+                imageId
+        );
+
+        return ResponseEntity.noContent().build();
     }
 }
