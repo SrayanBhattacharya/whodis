@@ -9,6 +9,8 @@ authors = [
 requires-python = ">=3.14"
 dependencies = [
     "fastapi>=0.141.1",
+    "insightface>=2.0",
+    "pydantic-settings>=2.15.0",
     "uvicorn>=0.54.0",
 ]
 
@@ -18,3 +20,12 @@ ml-service = "ml_service:main"
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv]
+override-dependencies = [
+    { package = { name = "insightface" }, dependencies = ["onnxruntime-gpu==1.30.0"] },
+]
+
+exclude-dependencies = [
+    { package = { name = "insightface" }, dependencies = ["onnxruntime"] },
+]

@@ -124,3 +124,6 @@ backend/**/jacoco/
 *.sql.gz
 *.dump
 *.bak
+
+# ML test assets
+ml-service/tests/assets/
