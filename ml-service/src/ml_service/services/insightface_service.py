@@ -47,3 +47,31 @@ class InsightFaceService:
             )
 
         return results
+
+    def compare_embeddings(
+        self,
+        embedding_a: np.ndarray,
+        embedding_b: np.ndarray,
+    ) -> float:
+        """Calculate cosine similarity between two normalized embeddings."""
+        if embedding_a.shape != embedding_b.shape:
+            raise ValueError("Embeddings must have the same shape")
+
+        return float(np.dot(embedding_a, embedding_b))
+
+    def generate_reference_embedding(self, image: np.ndarray) -> np.ndarray:
+        if self._app is None:
+            raise RuntimeError("InsightFaceService is not initialized")
+
+        if image is None or image.size == 0:
+            raise ValueError("Image must not be empty")
+
+        faces = self._app.get(image)
+
+        if len(faces) == 0:
+            raise ValueError("No face detected")
+
+        if len(faces) > 1:
+            raise ValueError("Reference image must contain exactly one face")
+
+        return faces[0].normed_embedding
