@@ -30,6 +30,9 @@ whodis:
   storage:
     root: ${STORAGE_ROOT:./storage}
 
+  ml:
+    base-url: ${ML_SERVICE_URL:http://localhost:8001}
+
 management:
   endpoints:
     web:
