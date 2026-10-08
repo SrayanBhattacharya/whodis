@@ -1,24 +1,32 @@
 package com.whodis.backend.referenceimage.service;
 
+import com.whodis.backend.ml.client.MlServiceClient;
+import com.whodis.backend.ml.dto.ReferenceEmbeddingResponse;
 import com.whodis.backend.person.entity.Person;
 import com.whodis.backend.person.repository.PersonRepository;
 import com.whodis.backend.person.service.PersonNotFoundException;
+import com.whodis.backend.referenceimage.entity.ReferenceEmbedding;
 import com.whodis.backend.referenceimage.entity.ReferenceImage;
+import com.whodis.backend.referenceimage.repository.ReferenceEmbeddingRepository;
 import com.whodis.backend.referenceimage.repository.ReferenceImageRepository;
 import com.whodis.backend.session.service.SessionService;
 import com.whodis.backend.storage.service.StorageException;
 import com.whodis.backend.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ReferenceImageService {
@@ -35,7 +43,10 @@ public class ReferenceImageService {
     private final StorageService storageService;
     private final ImageValidationService imageValidationService;
     private final SessionService sessionService;
+    private final MlServiceClient mlServiceClient;
+    private final ReferenceEmbeddingRepository referenceEmbeddingRepository;
 
+    @Transactional
     public ReferenceImage uploadReferenceImage(
             UUID sessionId,
             UUID personId,
@@ -52,6 +63,21 @@ public class ReferenceImageService {
         try {
             storageKey = storageService.store(file.getInputStream());
 
+            byte[] imageBytes = file.getBytes();
+
+            ReferenceEmbeddingResponse embedding =
+                    mlServiceClient.generateReferenceEmbedding(
+                            imageBytes,
+                            file.getOriginalFilename(),
+                            file.getContentType()
+                    );
+
+            if (embedding.dimension() != 512) {
+                throw new IllegalStateException(
+                        "Unexpected embedding dimension: " + embedding.dimension() + ", expected 512"
+                        );
+            }
+
             ReferenceImage referenceImage = new ReferenceImage(
                     UUID.randomUUID(),
                     person,
@@ -62,7 +88,22 @@ public class ReferenceImageService {
                     Instant.now()
             );
 
-            return referenceImageRepository.save(referenceImage);
+            referenceImage = referenceImageRepository.save(referenceImage);
+
+            byte[] embeddingBytes = EmbeddingCodec.encode(embedding.embedding());
+
+            ReferenceEmbedding referenceEmbedding = new ReferenceEmbedding(
+                    UUID.randomUUID(),
+                    referenceImage,
+                    embeddingBytes,
+                    embedding.model(),
+                    embedding.modelVersion(),
+                    embedding.dimension(),
+                    Instant.now()
+            );
+            referenceEmbeddingRepository.save(referenceEmbedding);
+
+            return referenceImage;
 
         } catch (IOException e) {
             cleanupStoredFile(storageKey);
@@ -131,8 +172,8 @@ public class ReferenceImageService {
 
         try {
             storageService.delete(storageKey);
-        } catch (RuntimeException ignored) {
-            // TODO: log cleanup failure
+        } catch (RuntimeException e) {
+            log.error("Failed to clean up stored file with key: {}", storageKey, e);
         }
     }
 }

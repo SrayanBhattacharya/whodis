@@ -5,12 +5,12 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/9fac1940-cce9-4d33-be18-4d7584f5045a/people"
+  url: "{{baseUrl}}/sessions/51b28f9a-bbae-49c2-9a4f-75c40ea12238/people"
   body:
     type: json
     data: |-
       {
-        "name": "John"
+        "name": "Jason"
       }
   auth: inherit
 

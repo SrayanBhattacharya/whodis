@@ -5,14 +5,14 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/9fac1940-cce9-4d33-be18-4d7584f5045a/people/e6b0d795-afb1-485f-92d8-cc383da5812b/reference-images"
+  url: "{{baseUrl}}/sessions/51b28f9a-bbae-49c2-9a4f-75c40ea12238/people/2dfc2157-0876-4e27-b0a0-209c62ef5f0e/reference-images"
   body:
     type: multipart-form
     data:
       - name: file
         type: file
         value:
-          - /home/srayan/Pictures/new-gta-6-artwork-v0-w867zmq3vqlh1.webp
+          - /home/srayan/Pictures/passport_square.jpeg
   auth: inherit
 
 settings:
