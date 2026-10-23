@@ -5,14 +5,15 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/51b28f9a-bbae-49c2-9a4f-75c40ea12238/people/2dfc2157-0876-4e27-b0a0-209c62ef5f0e/reference-images"
+  url: "{{baseUrl}}/sessions/cc6211a7-4fc0-4e4f-af7f-ce95a97d4546/people/d118ee9b-fb86-4319-90b7-c55457bf2740/reference-images"
   body:
     type: multipart-form
     data:
       - name: file
         type: file
         value:
-          - /home/srayan/Pictures/passport_square.jpeg
+          - C:\Users\sraya\OneDrive\Pictures\DSC_0732.jpg
+        contentType: image/jpeg
   auth: inherit
 
 settings:
@@ -20,3 +21,4 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true

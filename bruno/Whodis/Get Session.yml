@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/sessions/9fac1940-cce9-4d33-be18-4d7584f5045a"
+  url: "{{baseUrl}}/sessions/cc6211a7-4fc0-4e4f-af7f-ce95a97d4546"
   auth: inherit
 
 settings:
@@ -13,3 +13,4 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true

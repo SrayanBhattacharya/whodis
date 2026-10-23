@@ -5,7 +5,7 @@ info:
 
 http:
   method: GET
-  url: "{{baseUrl}}/sessions/9fac1940-cce9-4d33-be18-4d7584f5045a/people/e6b0d795-afb1-485f-92d8-cc383da5812b/reference-images/1fcb9983-590d-453b-9bd5-821938c89de6"
+  url: "{{baseUrl}}/sessions/cc6211a7-4fc0-4e4f-af7f-ce95a97d4546/people/d118ee9b-fb86-4319-90b7-c55457bf2740/reference-images/281c317b-0ba3-455d-a9b0-d894a177d878"
   auth: inherit
 
 settings:
@@ -13,3 +13,4 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true

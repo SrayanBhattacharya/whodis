@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/51b28f9a-bbae-49c2-9a4f-75c40ea12238/people"
+  url: "{{baseUrl}}/sessions/cc6211a7-4fc0-4e4f-af7f-ce95a97d4546/people"
   body:
     type: json
     data: |-
@@ -19,3 +19,4 @@ settings:
   timeout: 0
   followRedirects: true
   maxRedirects: 5
+  forwardAuthorizationHeader: true
