@@ -52,6 +52,16 @@ public class ProcessingJobService {
         ) == 1;
     }
 
+    @Transactional(readOnly = true)
+    public ProcessingJob getJob(UUID jobId) {
+        return processingJobRepository.findById(jobId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Processing job not found: " + jobId
+                        )
+                );
+    }
+
     @Transactional
     public void completeJob(UUID jobId) {
         ProcessingJob job = getProcessingJob(jobId);
