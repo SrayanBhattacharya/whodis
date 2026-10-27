@@ -48,6 +48,29 @@ class InsightFaceService:
 
         return results
 
+    
+    def detect_face_data(
+        self,
+        image: np.ndarray,
+    ) -> list[dict[str, Any]]:
+        """Detect faces and return data for the API response."""
+        faces = self.detect_faces(image)
+
+        return [
+            {
+                "bounding_box": {
+                    "x1": face["bbox"][0],
+                    "y1": face["bbox"][1],
+                    "x2": face["bbox"][2],
+                    "y2": face["bbox"][3],
+                },
+                "det_score": face["det_score"],
+                "embedding": face["embedding"],
+            }
+            for face in faces
+        ]
+
+
     def compare_embeddings(
         self,
         embedding_a: np.ndarray,

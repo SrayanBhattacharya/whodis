@@ -6,6 +6,7 @@ from ml_service.api.routes.health import router as health_router
 from ml_service.core.config import settings
 from ml_service.services.insightface_service import InsightFaceService
 from ml_service.api.routes.embeddings import router as embeddings_router
+from ml_service.api.routes.faces import router as faces_router
 
 
 @asynccontextmanager
@@ -26,3 +27,4 @@ app = FastAPI(
 
 app.include_router(health_router)
 app.include_router(embeddings_router)
+app.include_router(faces_router)
