@@ -1,5 +1,6 @@
 package com.whodis.backend.ml.client;
 
+import com.whodis.backend.ml.dto.PhotoFaceDetectionResponse;
 import com.whodis.backend.ml.dto.ReferenceEmbeddingResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -49,5 +50,35 @@ public class MlServiceClient {
                 .body(body)
                 .retrieve()
                 .body(ReferenceEmbeddingResponse.class);
+    }
+
+    public PhotoFaceDetectionResponse detectFaces(
+            byte[] image,
+            String filename,
+            String contentType
+    ) {
+        ByteArrayResource resource = new ByteArrayResource(image) {
+            @Override
+            public String getFilename() {
+                return filename;
+            }
+        };
+
+        HttpHeaders fileHeaders = new HttpHeaders();
+        fileHeaders.setContentType(MediaType.parseMediaType(contentType));
+
+        HttpEntity<ByteArrayResource> filePart = new HttpEntity<>(resource, fileHeaders);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+
+        body.add("file", filePart);
+
+        return mlRestClient
+                .post()
+                .uri("/internal/v1/faces/detect")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(body)
+                .retrieve()
+                .body(PhotoFaceDetectionResponse.class);
     }
 }

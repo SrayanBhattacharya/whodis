@@ -40,6 +40,10 @@ whodis:
   ml:
     base-url: ${ML_SERVICE_URL:http://localhost:8001}
 
+  face-matching:
+    similarity-threshold: 0.55
+    minimum-margin: 0.05
+
 management:
   endpoints:
     web:

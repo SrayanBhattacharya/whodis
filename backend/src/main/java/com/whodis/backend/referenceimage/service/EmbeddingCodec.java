@@ -19,4 +19,22 @@ public final class EmbeddingCodec {
 
         return buffer.array();
     }
+
+    public static float[] decode(byte[] embedding) {
+        if (embedding == null || embedding.length % Float.BYTES != 0) {
+            throw new IllegalArgumentException("Invalid embedding byte array");
+        }
+
+        ByteBuffer buffer = ByteBuffer
+                .wrap(embedding)
+                .order(ByteOrder.LITTLE_ENDIAN);
+
+        float[] result = new float[embedding.length / Float.BYTES];
+
+        for (int i = 0; i < result.length; i++) {
+            result[i] = buffer.getFloat();
+        }
+
+        return result;
+    }
 }
