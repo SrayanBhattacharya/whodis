@@ -44,6 +44,13 @@ whodis:
     similarity-threshold: 0.55
     minimum-margin: 0.05
 
+  processing:
+    worker:
+      pending-idle-time: 5m
+      recovery-interval: 30000
+      max-attempts: 3
+      retry-delays: 10s
+
 management:
   endpoints:
     web:

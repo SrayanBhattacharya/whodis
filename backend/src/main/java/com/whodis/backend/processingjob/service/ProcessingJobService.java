@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -80,6 +81,45 @@ public class ProcessingJobService {
         job.setStatus(ProcessingJobStatus.FAILED);
         job.setCompletedAt(Instant.now());
         job.setErrorMessage(errorMessage);
+    }
+
+    @Transactional(readOnly = true)
+    public UUID getPhotoId(UUID jobId) {
+        return processingJobRepository.findById(jobId)
+                .map(job -> job.getPhoto().getId())
+                .orElseThrow(() ->
+                        new EntityNotFoundException(
+                                "Processing job not found: " + jobId
+                        )
+                );
+    }
+
+    @Transactional
+    public boolean reclaimStaleJob(UUID jobId, Duration idleTimeout) {
+        Instant now = Instant.now();
+        Instant cutoff = now.minus(idleTimeout);
+
+        return processingJobRepository.reclaimStaleJob(
+                jobId,
+                ProcessingJobStatus.PROCESSING,
+                cutoff,
+                now
+        ) == 1;
+    }
+
+    @Transactional
+    public boolean scheduleRetry(
+            UUID jobId,
+            String errorMessage,
+            int maxAttempts
+    ) {
+        return processingJobRepository.scheduleRetry(
+                jobId,
+                ProcessingJobStatus.PROCESSING,
+                ProcessingJobStatus.PENDING,
+                errorMessage,
+                maxAttempts
+        ) == 1;
     }
 
     private ProcessingJob getProcessingJob(UUID jobId) {

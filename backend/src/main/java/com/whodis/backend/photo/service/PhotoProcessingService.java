@@ -6,17 +6,15 @@ import com.whodis.backend.ml.dto.FaceMatchResult;
 import com.whodis.backend.ml.dto.PhotoFaceDetectionResponse;
 import com.whodis.backend.ml.service.FaceMatchingService;
 import com.whodis.backend.photoface.entity.PhotoFace;
-import com.whodis.backend.photoface.repository.PhotoFaceRepository;
+import com.whodis.backend.photoface.service.PhotoFacePersistenceService;
 import com.whodis.backend.photo.entity.Photo;
 import com.whodis.backend.photo.repository.PhotoRepository;
-import com.whodis.backend.processingjob.service.ProcessingJobService;
 import com.whodis.backend.referenceimage.entity.ReferenceEmbedding;
 import com.whodis.backend.referenceimage.repository.ReferenceEmbeddingRepository;
 import com.whodis.backend.referenceimage.service.EmbeddingCodec;
 import com.whodis.backend.storage.service.StorageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.io.InputStream;
 import java.time.Instant;
@@ -28,26 +26,33 @@ import java.util.UUID;
 public class PhotoProcessingService {
 
     private final PhotoRepository photoRepository;
-    private final PhotoFaceRepository photoFaceRepository;
-    private final ReferenceEmbeddingRepository referenceEmbeddingRepository;
     private final StorageService storageService;
     private final MlServiceClient mlServiceClient;
+    private final ReferenceEmbeddingRepository referenceEmbeddingRepository;
     private final FaceMatchingService faceMatchingService;
-    private final ProcessingJobService processingJobService;
+    private final PhotoFacePersistenceService persistenceService;
 
     public void processPhoto(UUID jobId, UUID photoId) {
 
-        Photo photo = photoRepository.findById(photoId)
+        Photo photo = photoRepository.findByIdWithSession(photoId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("Photo not found: " + photoId)
+                        new IllegalArgumentException(
+                                "Photo not found: " + photoId
+                        )
                 );
 
         byte[] imageBytes;
 
-        try (InputStream inputStream = storageService.load(photo.getStorageKey())) {
+        try (InputStream inputStream =
+                     storageService.load(photo.getStorageKey())) {
+
             imageBytes = inputStream.readAllBytes();
+
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to load photo", e);
+            throw new IllegalStateException(
+                    "Failed to load photo: " + photoId,
+                    e
+            );
         }
 
         PhotoFaceDetectionResponse detectionResponse =
@@ -57,15 +62,12 @@ public class PhotoProcessingService {
                         photo.getContentType()
                 );
 
-        UUID sessionId = photoRepository.findSessionIdByPhotoId(photoId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Photo session not found")
+        List<ReferenceEmbedding> referenceEmbeddings =
+                referenceEmbeddingRepository.findAllBySessionId(
+                        photo.getSession().getId()
                 );
 
-        List<ReferenceEmbedding> referenceEmbeddings =
-                referenceEmbeddingRepository.findAllBySessionId(sessionId);
-
-        List<PhotoFace> detectedFaces = detectionResponse.faces()
+        List<PhotoFace> faces = detectionResponse.faces()
                 .stream()
                 .map(face -> createPhotoFace(
                         photo,
@@ -75,16 +77,7 @@ public class PhotoProcessingService {
                 ))
                 .toList();
 
-        saveFacesAndCompleteJob(jobId, detectedFaces);
-    }
-
-    @Transactional
-    protected void saveFacesAndCompleteJob(
-            UUID jobId,
-            List<PhotoFace> detectedFaces
-    ) {
-        photoFaceRepository.saveAll(detectedFaces);
-        processingJobService.completeJob(jobId);
+        persistenceService.saveFacesAndCompleteJob(jobId, photoId, faces);
     }
 
     private PhotoFace createPhotoFace(
@@ -93,6 +86,7 @@ public class PhotoProcessingService {
             PhotoFaceDetectionResponse response,
             List<ReferenceEmbedding> referenceEmbeddings
     ) {
+
         FaceMatchResult match = faceMatchingService.findBestMatch(
                 face.embedding(),
                 referenceEmbeddings
@@ -104,7 +98,6 @@ public class PhotoProcessingService {
         photoFace.setPhoto(photo);
 
         if (match != null) {
-            // Resolve Person from the matched reference embedding.
             photoFace.setPerson(
                     referenceEmbeddings.stream()
                             .filter(reference ->
@@ -118,12 +111,20 @@ public class PhotoProcessingService {
                             .getReferenceImage()
                             .getPerson()
             );
+
             photoFace.setSimilarityScore(match.similarity());
         }
 
-        photoFace.setBoundingBox(
-                boundingBoxToJson(face)
-        );
+        var box = face.boundingBox();
+
+        photoFace.setBoundingBox("""
+                {"x1":%s,"y1":%s,"x2":%s,"y2":%s}
+                """.formatted(
+                box.x1(),
+                box.y1(),
+                box.x2(),
+                box.y2()
+        ).trim());
 
         photoFace.setEmbedding(
                 EmbeddingCodec.encode(face.embedding())
@@ -135,18 +136,5 @@ public class PhotoProcessingService {
         photoFace.setCreatedAt(Instant.now());
 
         return photoFace;
-    }
-
-    private String boundingBoxToJson(DetectedFace face) {
-        var box = face.boundingBox();
-
-        return """
-                {"x1":%s,"y1":%s,"x2":%s,"y2":%s}
-                """.formatted(
-                box.x1(),
-                box.y1(),
-                box.x2(),
-                box.y2()
-        ).trim();
     }
 }

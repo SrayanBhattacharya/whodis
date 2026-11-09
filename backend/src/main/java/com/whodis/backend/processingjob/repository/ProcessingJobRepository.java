@@ -36,4 +36,43 @@ public interface ProcessingJobRepository
             @Param("processing") ProcessingJobStatus processing,
             @Param("startedAt") Instant startedAt
     );
+
+    @Modifying
+    @Query("""
+        UPDATE ProcessingJob j
+        SET j.startedAt = :now,
+            j.attemptCount = j.attemptCount + 1,
+            j.errorMessage = null
+        WHERE j.id = :jobId
+          AND j.status = :status
+          AND j.startedAt <= :cutoff
+        """)
+    int reclaimStaleJob(
+            @Param("jobId") UUID jobId,
+            @Param("status") ProcessingJobStatus status,
+            @Param("cutoff") Instant cutoff,
+            @Param("now") Instant now
+    );
+
+    @Modifying(
+            flushAutomatically = true,
+            clearAutomatically = true
+    )
+    @Query("""
+    UPDATE ProcessingJob j
+    SET j.status = :pendingStatus,
+        j.startedAt = null,
+        j.completedAt = null,
+        j.errorMessage = :errorMessage
+    WHERE j.id = :jobId
+      AND j.status = :processingStatus
+      AND j.attemptCount < :maxAttempts
+    """)
+    int scheduleRetry(
+            @Param("jobId") UUID jobId,
+            @Param("processingStatus") ProcessingJobStatus processingStatus,
+            @Param("pendingStatus") ProcessingJobStatus pendingStatus,
+            @Param("errorMessage") String errorMessage,
+            @Param("maxAttempts") int maxAttempts
+    );
 }
