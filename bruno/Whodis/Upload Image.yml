@@ -5,14 +5,14 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/cc6211a7-4fc0-4e4f-af7f-ce95a97d4546/people/d118ee9b-fb86-4319-90b7-c55457bf2740/reference-images"
+  url: "{{baseUrl}}/sessions/4408a4ad-6509-426f-bbc4-ed48ab9387d7/people/24d141cd-dabd-4166-a52f-cc31626a818c/reference-images"
   body:
     type: multipart-form
     data:
       - name: file
         type: file
         value:
-          - C:\Users\sraya\OneDrive\Pictures\DSC_0732.jpg
+          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0013.JPG
         contentType: image/jpeg
   auth: inherit
 

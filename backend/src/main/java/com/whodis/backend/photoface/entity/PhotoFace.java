@@ -7,6 +7,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -42,7 +44,8 @@ public class PhotoFace {
     )
     private Person person;
 
-    @Column(name = "bounding_box", nullable = false, columnDefinition = "JSONB")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "bounding_box", columnDefinition = "jsonb", nullable = false)
     private String boundingBox;
 
     @Column(name = "embedding", nullable = false, columnDefinition = "BYTEA")

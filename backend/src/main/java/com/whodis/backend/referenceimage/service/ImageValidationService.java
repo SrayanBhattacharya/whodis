@@ -14,9 +14,9 @@ import java.util.Set;
 public class ImageValidationService {
 
     private static final long MAX_FILE_SIZE = 10 * 1024 * 1024;
-    private static final int MAX_WIDTH = 4096;
-    private static final int MAX_HEIGHT = 4096;
-    private static final long MAX_PIXELS = 16_777_216L;
+    private static final int MAX_WIDTH = 8192;
+    private static final int MAX_HEIGHT = 8192;
+    private static final long MAX_PIXELS = 40_000_000L;
 
     private static final Set<String> ALLOWED_CONTENT_TYPES = Set.of(
             "image/jpeg",

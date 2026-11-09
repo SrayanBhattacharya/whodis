@@ -4,6 +4,7 @@ import com.whodis.backend.ml.dto.FaceMatchResult;
 import com.whodis.backend.referenceimage.entity.ReferenceEmbedding;
 import com.whodis.backend.referenceimage.service.EmbeddingCodec;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class FaceMatchingService {
 
     @Value("${whodis.face-matching.similarity-threshold:0.65}")
@@ -39,6 +41,12 @@ public class FaceMatchingService {
 
             float similarity = cosineSimilarity(detected, stored);
 
+            log.info(
+                    "Face matching candidate: personId={}, similarity={}",
+                    reference.getReferenceImage().getPerson().getId(),
+                    similarity
+            );
+
             UUID personId = reference
                     .getReferenceImage()
                     .getPerson()
@@ -59,6 +67,12 @@ public class FaceMatchingService {
         Map.Entry<UUID, Float> best = ranked.get(0);
 
         if (best.getValue() < similarityThreshold) {
+            log.info(
+                    "Face rejected: best similarity={} is below threshold={}",
+                    best.getValue(),
+                    similarityThreshold
+            );
+
             return null;
         }
 

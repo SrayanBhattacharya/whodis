@@ -21,7 +21,7 @@ spring:
   servlet:
     multipart:
       max-file-size: 10MB
-      max-request-size: 10MB
+      max-request-size: 1000MB
 
   data:
     redis:
@@ -41,7 +41,7 @@ whodis:
     base-url: ${ML_SERVICE_URL:http://localhost:8001}
 
   face-matching:
-    similarity-threshold: 0.55
+    similarity-threshold: 0.51
     minimum-margin: 0.05
 
   processing:
