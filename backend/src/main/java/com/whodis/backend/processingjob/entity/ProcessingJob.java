@@ -59,4 +59,7 @@ public class ProcessingJob {
 
     @Column(name = "completed_at")
     private Instant completedAt;
+
+    @Column(name = "queue_published_at")
+    private Instant queuePublishedAt;
 }

@@ -8,10 +8,12 @@ import com.whodis.backend.processingjob.repository.ProcessingJobRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -36,6 +38,7 @@ public class ProcessingJobService {
                 0,
                 null,
                 Instant.now(),
+                null,
                 null,
                 null
         );
@@ -120,6 +123,25 @@ public class ProcessingJobService {
                 errorMessage,
                 maxAttempts
         ) == 1;
+    }
+
+    @Transactional
+    public void markQueuePublished(UUID jobId) {
+        processingJobRepository.markQueuePublished(
+                jobId,
+                Instant.now()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public List<UUID> getUnpublishedPendingJobIds() {
+        return processingJobRepository
+                .findTop50ByStatusAndQueuePublishedAtIsNullOrderByCreatedAtAsc(
+                        ProcessingJobStatus.PENDING
+                )
+                .stream()
+                .map(job -> job.getId())
+                .toList();
     }
 
     private ProcessingJob getProcessingJob(UUID jobId) {

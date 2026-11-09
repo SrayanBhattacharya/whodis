@@ -50,6 +50,7 @@ whodis:
       recovery-interval: 30000
       max-attempts: 3
       retry-delays: 10s
+      reconciliation-interval: 30s
 
 management:
   endpoints:

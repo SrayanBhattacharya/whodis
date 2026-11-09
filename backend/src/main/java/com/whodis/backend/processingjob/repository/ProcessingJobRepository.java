@@ -75,4 +75,20 @@ public interface ProcessingJobRepository
             @Param("errorMessage") String errorMessage,
             @Param("maxAttempts") int maxAttempts
     );
+
+    List<ProcessingJob> findTop50ByStatusAndQueuePublishedAtIsNullOrderByCreatedAtAsc(
+            ProcessingJobStatus status
+    );
+
+    @Modifying
+    @Query("""
+    UPDATE ProcessingJob j
+    SET j.queuePublishedAt = :publishedAt
+    WHERE j.id = :jobId
+      AND j.queuePublishedAt IS NULL
+    """)
+    int markQueuePublished(
+            @Param("jobId") UUID jobId,
+            @Param("publishedAt") Instant publishedAt
+    );
 }
