@@ -1,6 +1,7 @@
 package com.whodis.backend.photoface.repository;
 
 import com.whodis.backend.photoface.entity.PhotoFace;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -24,4 +25,10 @@ public interface PhotoFaceRepository extends JpaRepository<PhotoFace, UUID> {
     WHERE pf.photo.id = :photoId
     """)
     void deleteAllByPhotoId(@Param("photoId") UUID photoId);
+
+    @EntityGraph(attributePaths = "photo")
+    List<PhotoFace> findAllByPersonIdAndPhotoSessionIdOrderByCreatedAtAsc(
+            UUID personId,
+            UUID sessionId
+    );
 }
