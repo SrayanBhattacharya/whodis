@@ -1,6 +1,8 @@
 package com.whodis.backend.photo.controller;
 
+import com.whodis.backend.photo.dto.PhotoListResponse;
 import com.whodis.backend.photo.dto.PhotoUploadResponse;
+import com.whodis.backend.photo.service.PhotoListService;
 import com.whodis.backend.photo.service.PhotoService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class PhotoController {
 
     private final PhotoService photoService;
+    private final PhotoListService photoListService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<PhotoUploadResponse>> uploadPhotos(
@@ -30,5 +33,14 @@ public class PhotoController {
         return ResponseEntity
                 .status(HttpStatus.CREATED)
                 .body(responses);
+    }
+
+    @GetMapping
+    public ResponseEntity<List<PhotoListResponse>> getSessionPhotos(
+            @PathVariable UUID sessionId
+    ) {
+        return ResponseEntity.ok(
+                photoListService.getSessionPhotos(sessionId)
+        );
     }
 }
