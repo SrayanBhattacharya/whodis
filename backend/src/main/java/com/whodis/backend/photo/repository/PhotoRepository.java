@@ -4,6 +4,7 @@ import com.whodis.backend.photo.entity.Photo;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -52,4 +53,25 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     Optional<Photo> findByIdForUpdate(
             @Param("photoId") UUID photoId
     );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT p
+    FROM Photo p
+    WHERE p.session.id = :sessionId
+    ORDER BY p.id
+    """)
+    List<Photo> findAllBySessionIdForUpdate(
+            @Param("sessionId") UUID sessionId
+    );
+
+    @Modifying(
+            flushAutomatically = true,
+            clearAutomatically = true
+    )
+    @Query("""
+    DELETE FROM Photo p
+    WHERE p.session.id = :sessionId
+    """)
+    void deleteAllBySessionId(@Param("sessionId") UUID sessionId);
 }

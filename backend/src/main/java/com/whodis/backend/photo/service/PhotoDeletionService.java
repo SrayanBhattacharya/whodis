@@ -18,6 +18,7 @@ import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -88,5 +89,73 @@ public class PhotoDeletionService {
         );
 
         return true;
+    }
+
+    @Transactional
+    public void deleteAllPhotos(UUID sessionId) {
+
+        // Validate session.
+        sessionService.getSession(sessionId);
+
+        // Lock every photo in the session.
+        List<Photo> photos =
+                photoRepository.findAllBySessionIdForUpdate(sessionId);
+
+        // Nothing to delete.
+        if (photos.isEmpty()) {
+            return;
+        }
+
+        // Prevent partial deletion if any photo is processing.
+        for (Photo photo : photos) {
+
+            boolean processing =
+                    processingJobRepository.existsByPhotoIdAndStatus(
+                            photo.getId(),
+                            ProcessingJobStatus.PROCESSING
+                    );
+
+            if (processing) {
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT,
+                        "Cannot delete session photos while a photo is being processed"
+                );
+            }
+        }
+
+        // Collect storage keys before deleting database records.
+        List<String> storageKeys = photos.stream()
+                .map(Photo::getStorageKey)
+                .toList();
+
+        // Delete associated faces and processing jobs.
+        for (Photo photo : photos) {
+            photoFaceRepository.deleteAllByPhotoId(photo.getId());
+            processingJobRepository.deleteAllByPhotoId(photo.getId());
+        }
+
+        // Delete all photo records.
+        photoRepository.deleteAllBySessionId(sessionId);
+
+        // Delete physical files only after successful DB commit.
+        TransactionSynchronizationManager.registerSynchronization(
+                new TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+
+                        for (String storageKey : storageKeys) {
+                            try {
+                                storageService.delete(storageKey);
+                            } catch (Exception e) {
+                                log.error(
+                                        "Failed to delete stored photo: {}",
+                                        storageKey,
+                                        e
+                                );
+                            }
+                        }
+                    }
+                }
+        );
     }
 }

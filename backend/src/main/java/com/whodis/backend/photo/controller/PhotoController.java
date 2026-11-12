@@ -62,4 +62,13 @@ public class PhotoController {
 
         return ResponseEntity.noContent().build();
     }
+
+    @DeleteMapping
+    public ResponseEntity<Void> deleteAllPhotos(
+            @PathVariable UUID sessionId
+    ) {
+        photoDeletionService.deleteAllPhotos(sessionId);
+
+        return ResponseEntity.noContent().build();
+    }
 }
