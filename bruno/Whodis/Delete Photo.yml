@@ -1,0 +1,16 @@
+info:
+  name: Delete Photo
+  type: http
+  seq: 12
+
+http:
+  method: DELETE
+  url: "{{baseUrl}}/sessions/26de1433-9dd5-4a32-83c0-a6db7142d853/photos/a22cc6f6-1f2f-48b4-a401-aa0f67401192"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

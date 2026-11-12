@@ -91,4 +91,19 @@ public interface ProcessingJobRepository
             @Param("jobId") UUID jobId,
             @Param("publishedAt") Instant publishedAt
     );
+
+    @Modifying(
+            flushAutomatically = true,
+            clearAutomatically = true
+    )
+    @Query("""
+    DELETE FROM ProcessingJob j
+    WHERE j.photo.id = :photoId
+    """)
+    void deleteAllByPhotoId(@Param("photoId") UUID photoId);
+
+    boolean existsByPhotoIdAndStatus(
+            UUID photoId,
+            ProcessingJobStatus status
+    );
 }

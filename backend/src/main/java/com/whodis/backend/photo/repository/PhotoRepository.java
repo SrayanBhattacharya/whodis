@@ -1,7 +1,9 @@
 package com.whodis.backend.photo.repository;
 
 import com.whodis.backend.photo.entity.Photo;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,4 +30,26 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
         WHERE p.id = :photoId
         """)
     Optional<Photo> findByIdWithSession(@Param("photoId") UUID photoId);
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT p
+    FROM Photo p
+    WHERE p.id = :photoId
+      AND p.session.id = :sessionId
+    """)
+    Optional<Photo> findByIdAndSessionIdForUpdate(
+            @Param("photoId") UUID photoId,
+            @Param("sessionId") UUID sessionId
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT p
+    FROM Photo p
+    WHERE p.id = :photoId
+    """)
+    Optional<Photo> findByIdForUpdate(
+            @Param("photoId") UUID photoId
+    );
 }

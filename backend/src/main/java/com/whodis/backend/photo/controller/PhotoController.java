@@ -2,6 +2,7 @@ package com.whodis.backend.photo.controller;
 
 import com.whodis.backend.photo.dto.PhotoListResponse;
 import com.whodis.backend.photo.dto.PhotoUploadResponse;
+import com.whodis.backend.photo.service.PhotoDeletionService;
 import com.whodis.backend.photo.service.PhotoListService;
 import com.whodis.backend.photo.service.PhotoService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class PhotoController {
 
     private final PhotoService photoService;
     private final PhotoListService photoListService;
+    private final PhotoDeletionService photoDeletionService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<PhotoUploadResponse>> uploadPhotos(
@@ -42,5 +44,22 @@ public class PhotoController {
         return ResponseEntity.ok(
                 photoListService.getSessionPhotos(sessionId)
         );
+    }
+
+    @DeleteMapping("/{photoId}")
+    public ResponseEntity<Void> deletePhoto(
+            @PathVariable UUID sessionId,
+            @PathVariable UUID photoId
+    ) {
+        boolean deleted = photoDeletionService.deletePhoto(
+                sessionId,
+                photoId
+        );
+
+        if (!deleted) {
+            return ResponseEntity.notFound().build();
+        }
+
+        return ResponseEntity.noContent().build();
     }
 }

@@ -48,6 +48,24 @@ public class ProcessingJobService {
 
     @Transactional
     public boolean claimJob(UUID jobId) {
+
+        ProcessingJob job = processingJobRepository.findById(jobId)
+                .orElse(null);
+
+        if (job == null) {
+            return false;
+        }
+
+        UUID photoId = job.getPhoto().getId();
+
+        // Acquire the same lock used by photo deletion.
+        boolean photoExists = photoRepository.findByIdForUpdate(photoId)
+                .isPresent();
+
+        if (!photoExists) {
+            return false;
+        }
+
         return processingJobRepository.claimJob(
                 jobId,
                 ProcessingJobStatus.PENDING,
