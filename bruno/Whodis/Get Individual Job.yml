@@ -1,0 +1,16 @@
+info:
+  name: Get Individual Job
+  type: http
+  seq: 14
+
+http:
+  method: GET
+  url: "{{baseUrl}}/sessions/651ddbb9-c2ee-4c12-8276-43a0b770401c/processing-jobs/55f6da69-92cf-48ac-b9b2-73b767e24595"
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
