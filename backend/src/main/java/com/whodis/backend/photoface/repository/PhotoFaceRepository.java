@@ -31,4 +31,9 @@ public interface PhotoFaceRepository extends JpaRepository<PhotoFace, UUID> {
             UUID personId,
             UUID sessionId
     );
+
+    @EntityGraph(attributePaths = "photo")
+    List<PhotoFace> findAllByPhotoSessionIdAndPersonIsNullOrderByCreatedAtAsc(
+            UUID sessionId
+    );
 }

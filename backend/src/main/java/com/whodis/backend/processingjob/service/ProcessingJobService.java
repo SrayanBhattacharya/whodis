@@ -143,7 +143,7 @@ public class ProcessingJobService {
         ) == 1;
     }
 
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void markQueuePublished(UUID jobId) {
         processingJobRepository.markQueuePublished(
                 jobId,

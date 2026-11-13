@@ -12,32 +12,12 @@ http:
       - name: files
         type: file
         value:
-          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0033.JPG
-        contentType: image/jpeg
-      - name: files
-        type: file
-        value:
-          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0041.JPG
-        contentType: image/jpeg
-      - name: files
-        type: file
-        value:
-          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0072.JPG
-        contentType: image/jpeg
-      - name: files
-        type: file
-        value:
           - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0103.JPG
         contentType: image/jpeg
       - name: files
         type: file
         value:
           - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0732.jpg
-        contentType: image/jpeg
-      - name: files
-        type: file
-        value:
-          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0013.JPG
         contentType: image/jpeg
   auth: inherit
 

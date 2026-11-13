@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/26de1433-9dd5-4a32-83c0-a6db7142d853/people/5ec59382-daf9-48be-915c-78d282d749ac/reference-images"
+  url: "{{baseUrl}}/sessions/a0bb7c29-6079-4222-b5ea-2a552ca0d5af/people/dd85bf2b-b20d-4f31-88f5-3f4a5a655309/reference-images"
   body:
     type: multipart-form
     data:
