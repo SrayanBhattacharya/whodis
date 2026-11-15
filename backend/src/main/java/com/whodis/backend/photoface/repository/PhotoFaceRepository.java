@@ -45,4 +45,13 @@ public interface PhotoFaceRepository extends JpaRepository<PhotoFace, UUID> {
     Optional<PhotoFace> findByIdForUpdate(
             @Param("faceId") UUID faceId
     );
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+    DELETE FROM PhotoFace pf
+    WHERE pf.photo.session.id = :sessionId
+    """)
+    void deleteAllBySessionId(
+            @Param("sessionId") UUID sessionId
+    );
 }

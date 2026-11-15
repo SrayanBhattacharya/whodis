@@ -106,4 +106,24 @@ public interface ProcessingJobRepository
             UUID photoId,
             ProcessingJobStatus status
     );
+
+    @Query("""
+    SELECT CASE WHEN COUNT(pj) > 0 THEN true ELSE false END
+    FROM ProcessingJob pj
+    WHERE pj.photo.session.id = :sessionId
+      AND pj.status = :status
+    """)
+    boolean existsBySessionIdAndStatus(
+            @Param("sessionId") UUID sessionId,
+            @Param("status") ProcessingJobStatus status
+    );
+
+    @Modifying(flushAutomatically = true)
+    @Query("""
+    DELETE FROM ProcessingJob pj
+    WHERE pj.photo.session.id = :sessionId
+    """)
+    void deleteAllBySessionId(
+            @Param("sessionId") UUID sessionId
+    );
 }

@@ -33,6 +33,7 @@ spring:
 whodis:
   session:
     duration: ${SESSION_DURATION:48h}
+    cleanup-interval: ${SESSION_CLEANUP_INTERVAL:300000}
 
   storage:
     root: ${STORAGE_ROOT:./storage}

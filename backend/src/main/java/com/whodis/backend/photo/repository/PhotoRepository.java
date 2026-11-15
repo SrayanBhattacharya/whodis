@@ -74,4 +74,13 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     WHERE p.session.id = :sessionId
     """)
     void deleteAllBySessionId(@Param("sessionId") UUID sessionId);
+
+    @Query("""
+    SELECT p.storageKey
+    FROM Photo p
+    WHERE p.session.id = :sessionId
+    """)
+    List<String> findAllStorageKeysBySessionId(
+            @Param("sessionId") UUID sessionId
+    );
 }

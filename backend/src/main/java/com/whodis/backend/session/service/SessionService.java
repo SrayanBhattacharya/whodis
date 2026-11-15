@@ -45,4 +45,16 @@ public class SessionService {
 
         return session;
     }
+
+    @Transactional
+    public Session getActiveSessionForUpdate(UUID sessionId) {
+        Session session = sessionRepository.findByIdForUpdate(sessionId)
+                .orElseThrow(() -> new SessionNotFoundException(sessionId));
+
+        if (session.isExpired()) {
+            throw new SessionExpiredException(sessionId);
+        }
+
+        return session;
+    }
 }

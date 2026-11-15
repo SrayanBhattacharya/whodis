@@ -25,6 +25,8 @@ public class PersonService {
             UUID sessionId,
             CreatePersonRequest request
     ) {
+        sessionService.getActiveSessionForUpdate(sessionId);
+
         Session session = sessionService.getSession(sessionId);
         String name = request.name().trim();
 

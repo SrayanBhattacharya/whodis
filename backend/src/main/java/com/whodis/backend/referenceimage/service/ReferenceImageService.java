@@ -52,6 +52,8 @@ public class ReferenceImageService {
             UUID personId,
             MultipartFile file
     ) {
+        sessionService.getActiveSessionForUpdate(sessionId);
+
         imageValidationService.validate(file);
 
         Person person = personRepository

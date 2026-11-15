@@ -32,6 +32,6 @@ public class Session {
     private SessionStatus status;
 
     public boolean isExpired() {
-        return Instant.now().isAfter(expiresAt);
+        return !Instant.now().isBefore(expiresAt);
     }
 }
