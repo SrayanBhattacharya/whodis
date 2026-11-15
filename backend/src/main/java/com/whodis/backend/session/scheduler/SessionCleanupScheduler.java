@@ -20,7 +20,7 @@ public class SessionCleanupScheduler {
     private final SessionCleanupService sessionCleanupService;
 
     @Scheduled(
-            fixedDelayString = "${whodis.session.cleanup-interval:300000}"
+            fixedDelayString = "${whodis.session.cleanup-interval:1800000}"
     )
     public void cleanupExpiredSessions() {
 

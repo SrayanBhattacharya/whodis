@@ -2,161 +2,134 @@
 
 WhoDis is a production-oriented, full-stack AI application that automatically organizes group photos based on the people appearing in them.
 
-Users can create a temporary session, register participants with reference photos, upload a collection of group photos, and have WhoDis identify which registered people appear in each image.
+Users create a temporary session, register participants with reference portrait photos, upload a collection of group photos, and rely on an asynchronous computer vision pipeline to detect and match faces. A single photo can be associated with multiple registered individuals, while unrecognized faces are preserved for manual review and assignment.
 
-A single photo can belong to multiple people, while unrecognized faces remain classified as unknown.
+---
 
-## Architecture
+## Architecture Overview
 
 ```text
-Next.js Frontend
-        │
-        ▼
-Spring Boot Backend
-        │
-   ┌────┼────┐
-   ▼    ▼    ▼
-PostgreSQL Redis Storage
-        │
-        ▼
- Async Processing
-        │
-        ▼
- Python ML Service
-        │
-        ▼
-Face Detection & Recognition
+Next.js Frontend (or REST Client)
+              │
+              ▼ HTTP (JSON / Multipart)
+    Spring Boot Backend (Port 8080)
+      ├── Local Filesystem Storage (UUID keys)
+      ├── PostgreSQL 18 (Flyway migrations, relational schema)
+      └── Redis Streams (whodis:photo-processing queue)
+              │
+              ▼ Asynchronous Processing & Synchronous Reference Extraction
+      Python ML Service (FastAPI - Port 8001)
+              │
+              ▼ ONNX Runtime
+      InsightFace buffalo_l (Face Detection & 512-dim Embeddings)
 ```
+
+For comprehensive architectural design, refer to [docs/architecture.md](docs/architecture.md).
+
+---
+
+## Key Features
+
+- **Session-Based Isolation:** Ephemeral, privacy-conscious sessions that auto-expire and trigger automated cascading cleanup of database records and disk files.
+- **Strict Media Validation:** Uploaded photos are inspected using Apache Tika for real MIME detection and Java ImageIO for dimensions and pixel thresholds.
+- **Reference Portrait Verification:** Reference photos are validated synchronously to guarantee that exactly one face is present before extracting reference embeddings.
+- **Asynchronous Photo Processing:** Photo uploads publish jobs to Redis Streams with transaction-synchronized commits, resilient message consumption, and automatic stale job reclamation.
+- **Accurate Face Matching:** Uses InsightFace's `buffalo_l` model to extract 512-dimensional normalized embeddings with cosine similarity matching and ambiguity margin checks.
+- **Manual Face Assignment:** Unmatched or unrecognized faces can be queried and manually linked to registered participants.
+
+---
 
 ## Technology Stack
 
-### Frontend
+- **Backend:** Java 25, Spring Boot 4.1.1, Spring Data JPA, Hibernate 6, Spring Data Redis, Flyway, Apache Tika.
+- **Machine Learning Service:** Python >= 3.14, FastAPI, InsightFace 2.0 (`buffalo_l`), ONNX Runtime, OpenCV, NumPy, Pydantic v2.
+- **Data & Message Infrastructure:** PostgreSQL 18, Redis 8 Alpine (Redis Streams with AOF persistence).
+- **Frontend:** Next.js, TypeScript, Tailwind CSS, shadcn/ui, TanStack Query (under `frontend/`).
 
-* Next.js
-* TypeScript
-* Tailwind CSS
-* shadcn/ui
-* TanStack Query
+---
 
-### Backend
-
-* Spring Boot
-* Java
-* Spring Web
-* Spring Data JPA
-* PostgreSQL
-* Redis
-
-### ML Service
-
-* Python
-* FastAPI
-* PyTorch
-* InsightFace / ArcFace
-* OpenCV
-* NumPy
-
-### Infrastructure
-
-* Docker
-* Docker Compose
-* GitHub Actions
-
-## Project Structure
+## Repository Structure
 
 ```text
 whodis/
-├── frontend/
-├── backend/
-├── ml-service/
-├── ml/
-│   ├── experiments/
-│   └── benchmarks/
-├── docker/
-├── docker-compose.yml
-├── .env.example
-├── .gitignore
-└── README.md
+├── backend/                  # Spring Boot 4.1.1 backend application (Java 25)
+│   ├── src/main/java/        # Domain services, controllers, entities, repositories
+│   ├── src/main/resources/   # application.yaml and Flyway migrations V1..V9
+│   ├── storage/              # Default local file storage root
+│   └── pom.xml               # Maven configuration
+├── ml-service/               # FastAPI ML inference microservice (Python 3.14)
+│   ├── src/ml_service/       # InsightFace wrapper, API routes, Pydantic schemas
+│   ├── tests/                # Unit tests and assets
+│   └── pyproject.toml        # uv / Python project dependencies
+├── frontend/                 # Next.js frontend application
+├── docs/                     # Comprehensive technical documentation
+│   ├── architecture.md       # High-level architecture and system design
+│   ├── api-reference.md      # Complete REST API reference with DTO examples
+│   ├── database-schema.md    # PostgreSQL schema, Flyway migrations & ER diagram
+│   ├── ml-pipeline.md        # Computer vision pipeline, InsightFace & matching rules
+│   ├── processing-pipeline.md# Asynchronous Redis Streams processing pipeline
+│   ├── configuration.md      # Configuration parameters & environment variables
+│   └── development-setup.md  # Step-by-step local development setup guide
+├── compose.yml               # Docker Compose configuration for PostgreSQL & Redis
+├── .env.example              # Environment variables template
+└── README.md                 # Project summary and documentation index
 ```
 
-## Current Status
+---
 
-🚧 **Early Development**
+## Documentation Index
 
-Current progress:
+Detailed documentation is available in the [`docs/`](docs/) directory:
 
-* [x] Project architecture defined
-* [x] Spring Boot backend initialized
-* [x] PostgreSQL configured
-* [x] Flyway database migrations configured
-* [x] Temporary session creation
-* [x] Session retrieval
-* [x] Basic exception handling
-* [x] API health check
-* [ ] Person registration
-* [ ] Reference image processing
-* [ ] Face detection and recognition
-* [ ] Batch photo processing
-* [ ] Asynchronous job processing
-* [ ] Frontend
-* [ ] Results and ZIP export
-* [ ] Automatic session cleanup
-* [ ] Testing
-* [ ] Dockerized full stack
-* [ ] CI/CD
+- [**System Architecture**](docs/architecture.md): Service boundaries, communication protocols, design decisions, and Mermaid diagrams.
+- [**API Reference**](docs/api-reference.md): Every REST endpoint, parameters, payloads, responses, validation rules, and error codes.
+- [**Database Schema**](docs/database-schema.md): Complete entity-relationship diagram, table definitions, constraints, indexes, and migration tracking.
+- [**Machine Learning Pipeline**](docs/ml-pipeline.md): InsightFace architecture, model parameters, embedding representations, and cosine similarity matching logic.
+- [**Processing Pipeline**](docs/processing-pipeline.md): Asynchronous photo processing sequence, Redis Streams worker, retry mechanism, and reconciliation.
+- [**Configuration Guide**](docs/configuration.md): Reference table of all environment variables, properties, and defaults.
+- [**Development Setup**](docs/development-setup.md): Prerequisites, commands, and troubleshooting for running locally.
 
-## Development
+---
 
-### Start PostgreSQL
+## Quick-Start Instructions
 
+### 1. Start PostgreSQL & Redis
 ```bash
-docker compose up -d postgres
+docker compose up -d
 ```
 
-### Start the Backend
+### 2. Start the ML Service
+```bash
+cd ml-service
+uv sync
+uv run uvicorn ml_service.main:app --host 0.0.0.0 --port 8001 --reload
+```
 
+### 3. Start the Spring Boot Backend
 ```bash
 cd backend
 ./mvnw spring-boot:run
 ```
 
-On Windows:
+Verify services:
+- Backend Health: `GET http://localhost:8080/actuator/health`
+- ML Service Health: `GET http://localhost:8001/health`
 
-```bash
-mvnw.cmd spring-boot:run
-```
+---
 
-### Health Check
+## Current Status
 
-```text
-GET http://localhost:8080/actuator/health
-```
-
-### Create a Session
-
-```text
-POST http://localhost:8080/api/v1/sessions
-```
-
-## Design Goals
-
-WhoDis is being developed as a production-oriented system rather than a simple computer-vision demo.
-
-Key goals include:
-
-* Clean service boundaries
-* Asynchronous processing
-* Reliable file lifecycle management
-* Temporary, privacy-conscious sessions
-* Replaceable ML models
-* Input validation
-* Idempotent operations
-* Structured error handling
-* Automated cleanup
-* Testing
-* Containerized deployment
-* CI/CD
-
-## License
-
-License to be determined.
+- [x] Ephemeral session lifecycle and automated background cleanup scheduler
+- [x] Person registration and participant management
+- [x] Strict image validation (MIME detection and pixel dimension constraints)
+- [x] Synchronous reference portrait processing with 512-dim embedding extraction
+- [x] Batch group photo uploads and local filesystem storage
+- [x] Asynchronous processing engine using Redis Streams
+- [x] InsightFace `buffalo_l` face detection and feature extraction
+- [x] Cosine similarity face matching with confidence thresholds and minimum margin evaluation
+- [x] Manual assignment API for unmatched faces
+- [x] Full Flyway relational migrations (V1 through V9)
+- [x] Comprehensive documentation suite in `docs/`
+- [ ] Frontend integration with Next.js UI
+- [ ] Results export (ZIP archive generation)
+- [ ] Production containerization and CI/CD pipelines
