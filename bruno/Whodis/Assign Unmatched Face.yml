@@ -1,0 +1,22 @@
+info:
+  name: Assign Unmatched Face
+  type: http
+  seq: 16
+
+http:
+  method: PATCH
+  url: "{{baseUrl}}/sessions/29953f59-aea2-40ce-9e7b-5c02e3287864/faces/089f03e7-3353-4450-b4bd-62305283b74e/assign"
+  body:
+    type: json
+    data: |-
+      {
+        "personId": "71e4639e-ecc6-44bd-8b41-3f07794ff67e"
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/a0bb7c29-6079-4222-b5ea-2a552ca0d5af/people"
+  url: "{{baseUrl}}/sessions/29953f59-aea2-40ce-9e7b-5c02e3287864/people"
   body:
     type: json
     data: |-

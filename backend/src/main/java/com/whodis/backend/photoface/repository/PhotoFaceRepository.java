@@ -1,13 +1,12 @@
 package com.whodis.backend.photoface.repository;
 
 import com.whodis.backend.photoface.entity.PhotoFace;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
-import org.springframework.data.jpa.repository.Query;
+import jakarta.persistence.LockModeType;
+import org.springframework.data.jpa.repository.*;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface PhotoFaceRepository extends JpaRepository<PhotoFace, UUID> {
@@ -35,5 +34,15 @@ public interface PhotoFaceRepository extends JpaRepository<PhotoFace, UUID> {
     @EntityGraph(attributePaths = "photo")
     List<PhotoFace> findAllByPhotoSessionIdAndPersonIsNullOrderByCreatedAtAsc(
             UUID sessionId
+    );
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT pf
+    FROM PhotoFace pf
+    WHERE pf.id = :faceId
+    """)
+    Optional<PhotoFace> findByIdForUpdate(
+            @Param("faceId") UUID faceId
     );
 }

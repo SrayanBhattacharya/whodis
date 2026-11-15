@@ -5,19 +5,24 @@ info:
 
 http:
   method: POST
-  url: "{{baseUrl}}/sessions/a0bb7c29-6079-4222-b5ea-2a552ca0d5af/photos"
+  url: "{{baseUrl}}/sessions/29953f59-aea2-40ce-9e7b-5c02e3287864/photos"
   body:
     type: multipart-form
     data:
       - name: files
         type: file
         value:
-          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0103.JPG
+          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0041.JPG
         contentType: image/jpeg
       - name: files
         type: file
         value:
-          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0732.jpg
+          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\DSC_0013.JPG
+        contentType: image/jpeg
+      - name: files
+        type: file
+        value:
+          - C:\Users\sraya\OneDrive\Pictures\Whodis Testing\download.jpg
         contentType: image/jpeg
   auth: inherit
 
