@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.time.Instant;
@@ -145,6 +146,11 @@ public class ReferenceImageService {
         return referenceImageRepository
                 .findByIdAndPersonId(imageId, personId)
                 .orElseThrow(() -> new ReferenceImageNotFoundException(imageId));
+    }
+
+    @Transactional(readOnly = true)
+    public InputStream getReferenceImageContent(ReferenceImage image) {
+        return storageService.load(image.getStorageKey());
     }
 
     @Transactional

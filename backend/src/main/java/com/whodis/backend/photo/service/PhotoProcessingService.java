@@ -67,13 +67,16 @@ public class PhotoProcessingService {
                         photo.getSession().getId()
                 );
 
+        boolean isGroupPhoto = detectionResponse.faces().size() >= 3;
+
         List<PhotoFace> faces = detectionResponse.faces()
                 .stream()
                 .map(face -> createPhotoFace(
                         photo,
                         face,
                         detectionResponse,
-                        referenceEmbeddings
+                        referenceEmbeddings,
+                        isGroupPhoto
                 ))
                 .toList();
 
@@ -84,13 +87,16 @@ public class PhotoProcessingService {
             Photo photo,
             DetectedFace face,
             PhotoFaceDetectionResponse response,
-            List<ReferenceEmbedding> referenceEmbeddings
+            List<ReferenceEmbedding> referenceEmbeddings,
+            boolean isGroupPhoto
     ) {
 
-        FaceMatchResult match = faceMatchingService.findBestMatch(
-                face.embedding(),
-                referenceEmbeddings
-        );
+        FaceMatchResult match = isGroupPhoto
+                ? null
+                : faceMatchingService.findBestMatch(
+                        face.embedding(),
+                        referenceEmbeddings
+                );
 
         PhotoFace photoFace = new PhotoFace();
 

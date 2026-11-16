@@ -46,6 +46,15 @@ public class PhotoController {
         );
     }
 
+    @GetMapping("/group")
+    public ResponseEntity<List<PhotoListResponse>> getGroupPhotos(
+            @PathVariable UUID sessionId
+    ) {
+        return ResponseEntity.ok(
+                photoListService.getGroupPhotos(sessionId)
+        );
+    }
+
     @DeleteMapping("/{photoId}")
     public ResponseEntity<Void> deletePhoto(
             @PathVariable UUID sessionId,

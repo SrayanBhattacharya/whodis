@@ -23,7 +23,7 @@ public class UnmatchedFaceService {
         sessionService.getSession(sessionId);
 
         return photoFaceRepository
-                .findAllByPhotoSessionIdAndPersonIsNullOrderByCreatedAtAsc(
+                .findAllUnmatchedNonGroupFacesBySessionId(
                         sessionId
                 )
                 .stream()

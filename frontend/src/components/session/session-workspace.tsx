@@ -6,6 +6,7 @@ import { ArrowRight, RefreshCw, AlertTriangle } from "lucide-react";
 import { SessionProvider, useSession } from "@/src/components/session/session-context";
 import { WorkspaceHeader } from "@/src/components/layout/workspace-header";
 import { PhotosView } from "@/src/components/photos/photos-view";
+import { GroupPhotosView } from "@/src/components/photos/group-photos-view";
 import { PeopleView } from "@/src/components/people/people-view";
 import { UnmatchedFacesView } from "@/src/components/photos/unmatched-faces-view";
 import { PhotoUploadModal } from "@/src/components/upload/upload-modal";
@@ -13,7 +14,7 @@ import { Button } from "@/src/components/ui/button";
 
 function WorkspaceContent() {
   const { isLoading, isExpired, error, refreshAll } = useSession();
-  const [currentTab, setCurrentTab] = useState<"photos" | "people" | "unmatched">("photos");
+  const [currentTab, setCurrentTab] = useState<"photos" | "people" | "group" | "unmatched">("photos");
   const [isUploadOpen, setIsUploadOpen] = useState(false);
 
   if (isLoading) {
@@ -90,6 +91,9 @@ function WorkspaceContent() {
           <PhotosView onOpenUpload={() => setIsUploadOpen(true)} />
         )}
         {currentTab === "people" && <PeopleView />}
+        {currentTab === "group" && (
+          <GroupPhotosView onOpenUpload={() => setIsUploadOpen(true)} />
+        )}
         {currentTab === "unmatched" && <UnmatchedFacesView />}
       </main>
 

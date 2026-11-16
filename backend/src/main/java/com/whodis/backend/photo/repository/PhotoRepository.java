@@ -83,4 +83,17 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     List<String> findAllStorageKeysBySessionId(
             @Param("sessionId") UUID sessionId
     );
+
+    @Query("""
+    SELECT p
+    FROM Photo p
+    WHERE p.session.id = :sessionId
+      AND (
+          SELECT COUNT(pf)
+          FROM PhotoFace pf
+          WHERE pf.photo = p
+      ) >= 3
+    ORDER BY p.createdAt ASC
+    """)
+    List<Photo> findGroupPhotosBySessionId(@Param("sessionId") UUID sessionId);
 }

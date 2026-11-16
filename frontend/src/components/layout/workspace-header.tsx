@@ -2,15 +2,15 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Users, Image as ImageIcon, Sparkles, Clock, AlertCircle, Plus } from "lucide-react";
+import { Users, Image as ImageIcon, Sparkles, Clock, AlertCircle, Plus, UsersRound } from "lucide-react";
 import { useSession } from "@/src/components/session/session-context";
 import { formatTimeRemaining } from "@/src/lib/utils/format";
 import { Modal } from "@/src/components/ui/modal";
 import { Button } from "@/src/components/ui/button";
 
 interface HeaderProps {
-  currentTab: "photos" | "people" | "unmatched";
-  onTabChange: (tab: "photos" | "people" | "unmatched") => void;
+  currentTab: "photos" | "people" | "group" | "unmatched";
+  onTabChange: (tab: "photos" | "people" | "group" | "unmatched") => void;
   onOpenUpload: () => void;
 }
 
@@ -19,7 +19,7 @@ export function WorkspaceHeader({
   onTabChange,
   onOpenUpload,
 }: HeaderProps) {
-  const { session, photos, people, unmatchedFaces, deleteAllPhotos } = useSession();
+  const { session, photos, groupPhotos, people, unmatchedFaces, deleteAllPhotos } = useSession();
   const [showClearConfirm, setShowClearConfirm] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
 
@@ -85,6 +85,21 @@ export function WorkspaceHeader({
                 <span>PEOPLE</span>
                 <span className="text-[11px] px-1.5 py-0.2 rounded bg-black text-[#888888] border border-[#222222]">
                   {people.length}
+                </span>
+              </button>
+
+              <button
+                onClick={() => onTabChange("group")}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded transition-all cursor-pointer ${
+                  currentTab === "group"
+                    ? "bg-[#1f1f1f] text-white border border-[#333333]"
+                    : "text-[#888888] hover:text-white"
+                }`}
+              >
+                <UsersRound className="w-3.5 h-3.5" />
+                <span>GROUP PHOTOS</span>
+                <span className="text-[11px] px-1.5 py-0.2 rounded bg-black text-[#888888] border border-[#222222]">
+                  {groupPhotos.length}
                 </span>
               </button>
 

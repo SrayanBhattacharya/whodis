@@ -36,6 +36,23 @@ public interface PhotoFaceRepository extends JpaRepository<PhotoFace, UUID> {
             UUID sessionId
     );
 
+    @EntityGraph(attributePaths = "photo")
+    @Query("""
+    SELECT pf
+    FROM PhotoFace pf
+    WHERE pf.photo.session.id = :sessionId
+      AND pf.person IS NULL
+      AND (
+          SELECT COUNT(pf2)
+          FROM PhotoFace pf2
+          WHERE pf2.photo = pf.photo
+      ) < 3
+    ORDER BY pf.createdAt ASC
+    """)
+    List<PhotoFace> findAllUnmatchedNonGroupFacesBySessionId(
+            @Param("sessionId") UUID sessionId
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("""
     SELECT pf

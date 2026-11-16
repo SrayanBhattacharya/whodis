@@ -20,12 +20,14 @@ interface SessionContextType {
 
   // Data
   photos: PhotoListResponse[];
+  groupPhotos: PhotoListResponse[];
   people: PersonResponse[];
   unmatchedFaces: UnmatchedFaceResponse[];
   jobStatuses: Record<string, ProcessingJobResponse>; // key is photoId
 
   // Actions
   refreshPhotos: () => Promise<void>;
+  refreshGroupPhotos: () => Promise<void>;
   refreshPeople: () => Promise<void>;
   refreshUnmatchedFaces: () => Promise<void>;
   refreshAll: () => Promise<void>;
@@ -50,6 +52,7 @@ export function SessionProvider({
   const [error, setError] = useState<string | null>(null);
 
   const [photos, setPhotos] = useState<PhotoListResponse[]>([]);
+  const [groupPhotos, setGroupPhotos] = useState<PhotoListResponse[]>([]);
   const [people, setPeople] = useState<PersonResponse[]>([]);
   const [unmatchedFaces, setUnmatchedFaces] = useState<UnmatchedFaceResponse[]>([]);
   const [jobStatuses, setJobStatuses] = useState<Record<string, ProcessingJobResponse>>({});
@@ -81,6 +84,15 @@ export function SessionProvider({
     }
   }, [sessionId, handleError]);
 
+  const refreshGroupPhotos = useCallback(async () => {
+    try {
+      const data = await api.listGroupPhotos(sessionId);
+      setGroupPhotos(data);
+    } catch (err) {
+      handleError(err);
+    }
+  }, [sessionId, handleError]);
+
   const refreshPeople = useCallback(async () => {
     try {
       const data = await api.listPeople(sessionId);
@@ -104,11 +116,11 @@ export function SessionProvider({
       const s = await api.getSession(sessionId);
       setSession(s);
       sessionStore.set(sessionId);
-      await Promise.all([refreshPhotos(), refreshPeople(), refreshUnmatchedFaces()]);
+      await Promise.all([refreshPhotos(), refreshGroupPhotos(), refreshPeople(), refreshUnmatchedFaces()]);
     } catch (err) {
       handleError(err);
     }
-  }, [sessionId, refreshPhotos, refreshPeople, refreshUnmatchedFaces, handleError]);
+  }, [sessionId, refreshPhotos, refreshGroupPhotos, refreshPeople, refreshUnmatchedFaces, handleError]);
 
   // Initial load
   useEffect(() => {
@@ -120,7 +132,7 @@ export function SessionProvider({
         if (!active) return;
         setSession(s);
         sessionStore.set(sessionId);
-        await Promise.all([refreshPhotos(), refreshPeople(), refreshUnmatchedFaces()]);
+        await Promise.all([refreshPhotos(), refreshGroupPhotos(), refreshPeople(), refreshUnmatchedFaces()]);
       })
       .catch((err) => {
         if (active) handleError(err);
@@ -132,7 +144,7 @@ export function SessionProvider({
     return () => {
       active = false;
     };
-  }, [sessionId, refreshPhotos, refreshPeople, refreshUnmatchedFaces, handleError]);
+  }, [sessionId, refreshPhotos, refreshGroupPhotos, refreshPeople, refreshUnmatchedFaces, handleError]);
 
   // Poll for jobs if there are any pending/processing photos
   useEffect(() => {
@@ -177,6 +189,7 @@ export function SessionProvider({
           if (justCompleted) {
             refreshUnmatchedFaces();
             refreshPeople();
+            refreshGroupPhotos();
           }
         }
 
@@ -193,11 +206,12 @@ export function SessionProvider({
     return () => {
       clearTimeout(timer);
     };
-  }, [photos, sessionId, isExpired, jobStatuses, refreshPeople, refreshUnmatchedFaces]);
+  }, [photos, sessionId, isExpired, jobStatuses, refreshPeople, refreshUnmatchedFaces, refreshGroupPhotos]);
 
   const deletePhoto = async (photoId: string) => {
     await api.deletePhoto(sessionId, photoId);
     setPhotos((prev) => prev.filter((p) => p.photoId !== photoId));
+    setGroupPhotos((prev) => prev.filter((p) => p.photoId !== photoId));
     setUnmatchedFaces((prev) => prev.filter((f) => f.photoId !== photoId));
     setJobStatuses((prev) => {
       const copy = { ...prev };
@@ -210,6 +224,7 @@ export function SessionProvider({
   const deleteAllPhotos = async () => {
     await api.deleteAllPhotos(sessionId);
     setPhotos([]);
+    setGroupPhotos([]);
     setUnmatchedFaces([]);
     setJobStatuses({});
     refreshPeople();
@@ -236,10 +251,12 @@ export function SessionProvider({
         isExpired,
         error,
         photos,
+        groupPhotos,
         people,
         unmatchedFaces,
         jobStatuses,
         refreshPhotos,
+        refreshGroupPhotos,
         refreshPeople,
         refreshUnmatchedFaces,
         refreshAll,

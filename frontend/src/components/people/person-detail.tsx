@@ -163,29 +163,45 @@ export function PersonDetail({ sessionId, person, onBack }: PersonDetailProps) {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-3">
-            {referenceImages.map((refImg) => (
-              <div
-                key={refImg.id}
-                className="group relative border border-[#222222] bg-[#0a0a0a] rounded p-2.5 text-xs"
-              >
-                <div className="aspect-square bg-black rounded flex items-center justify-center overflow-hidden mb-2">
-                  <User className="w-6 h-6 text-white" />
-                </div>
-                <p className="truncate text-[#cccccc] text-xs" title={refImg.originalFilename}>
-                  {refImg.originalFilename}
-                </p>
-                <p className="text-[10px] text-[#666666] font-mono mt-0.5">
-                  {formatBytes(refImg.fileSize)}
-                </p>
-                <button
-                  onClick={() => handleDeleteReference(refImg.id)}
-                  className="absolute top-1.5 right-1.5 p-1 bg-black rounded text-[#888888] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-[#222222]"
-                  title="Delete reference image"
+            {referenceImages.map((refImg) => {
+              const refUrl = api.getReferenceImageUrl(sessionId, person.id, refImg.id);
+              return (
+                <div
+                  key={refImg.id}
+                  className="group relative border border-[#222222] bg-[#0a0a0a] rounded p-2.5 text-xs hover:border-[#444444] transition-colors"
                 >
-                  <Trash2 className="w-3 h-3" />
-                </button>
-              </div>
-            ))}
+                  <div className="aspect-square bg-black rounded flex items-center justify-center overflow-hidden mb-2 relative border border-[#1a1a1a]">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={refUrl}
+                      alt={refImg.originalFilename}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        (e.currentTarget as HTMLElement).style.display = "none";
+                        const fallback = e.currentTarget.parentElement?.querySelector(".ref-fallback");
+                        if (fallback) (fallback as HTMLElement).classList.remove("hidden");
+                      }}
+                    />
+                    <div className="ref-fallback hidden w-full h-full flex items-center justify-center bg-[#0d0d0d]">
+                      <User className="w-6 h-6 text-[#666666]" />
+                    </div>
+                  </div>
+                  <p className="truncate text-[#cccccc] text-xs font-mono" title={refImg.originalFilename}>
+                    {refImg.originalFilename}
+                  </p>
+                  <p className="text-[10px] text-[#666666] font-mono mt-0.5">
+                    {formatBytes(refImg.fileSize)}
+                  </p>
+                  <button
+                    onClick={() => handleDeleteReference(refImg.id)}
+                    className="absolute top-1.5 right-1.5 p-1 bg-black/80 rounded text-[#888888] hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer border border-[#222222]"
+                    title="Delete reference image"
+                  >
+                    <Trash2 className="w-3 h-3" />
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

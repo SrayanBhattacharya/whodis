@@ -28,4 +28,15 @@ public class PhotoListService {
                 .map(PhotoListResponse::from)
                 .toList();
     }
+
+    @Transactional(readOnly = true)
+    public List<PhotoListResponse> getGroupPhotos(UUID sessionId) {
+        sessionService.getSession(sessionId);
+
+        return photoRepository
+                .findGroupPhotosBySessionId(sessionId)
+                .stream()
+                .map(PhotoListResponse::from)
+                .toList();
+    }
 }

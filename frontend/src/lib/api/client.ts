@@ -134,6 +134,13 @@ export const api = {
       }
     ),
 
+  getReferenceImageUrl: (
+    sessionId: string,
+    personId: string,
+    imageId: string
+  ): string =>
+    `${API_PREFIX}/sessions/${sessionId}/people/${personId}/reference-images/${imageId}/content`,
+
   // Photos
   uploadPhotos: (
     sessionId: string,
@@ -151,6 +158,9 @@ export const api = {
 
   listPhotos: (sessionId: string): Promise<PhotoListResponse[]> =>
     request<PhotoListResponse[]>(`/sessions/${sessionId}/photos`),
+
+  listGroupPhotos: (sessionId: string): Promise<PhotoListResponse[]> =>
+    request<PhotoListResponse[]>(`/sessions/${sessionId}/photos/group`),
 
   deletePhoto: (sessionId: string, photoId: string): Promise<void> =>
     request<void>(`/sessions/${sessionId}/photos/${photoId}`, {

@@ -10,11 +10,16 @@ import { Modal } from "@/src/components/ui/modal";
 import { parseBoundingBox } from "@/src/lib/utils/format";
 
 export function UnmatchedFacesView() {
-  const { sessionId, unmatchedFaces, people, assignFace } = useSession();
+  const { sessionId, unmatchedFaces, groupPhotos, people, assignFace } = useSession();
   const [selectedFace, setSelectedFace] = useState<UnmatchedFaceResponse | null>(null);
   const [selectedPersonId, setSelectedPersonId] = useState<string>("");
   const [isAssigning, setIsAssigning] = useState(false);
   const [assignError, setAssignError] = useState<string | null>(null);
+
+  const groupPhotoIdSet = new Set(groupPhotos.map((p) => p.photoId));
+  const filteredUnmatchedFaces = unmatchedFaces.filter(
+    (face) => !groupPhotoIdSet.has(face.photoId)
+  );
 
   const handleAssign = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +39,7 @@ export function UnmatchedFacesView() {
     }
   };
 
-  if (unmatchedFaces.length === 0) {
+  if (filteredUnmatchedFaces.length === 0) {
     return (
       <div className="py-24 text-center max-w-md mx-auto px-4 font-mono">
         <div className="w-12 h-12 mx-auto mb-5 flex items-center justify-center bg-[#0a0a0a] border border-[#222222] rounded text-[#888888]">
@@ -44,7 +49,7 @@ export function UnmatchedFacesView() {
           QUEUE CLEAN // ZERO UNASSIGNED
         </h3>
         <p className="text-xs text-[#888888] leading-relaxed font-sans">
-          All detected face bounding boxes have either matched registered participants or no unclassified faces remain.
+          All detected face bounding boxes have either matched registered participants or no unclassified faces remain. Group photos are maintained in the Group Photos section.
         </p>
       </div>
     );
@@ -58,13 +63,13 @@ export function UnmatchedFacesView() {
           Unassigned Faces
         </h2>
         <p className="text-xs text-[#888888] mt-0.5">
-          {"// triage:"} {unmatchedFaces.length} detected faces awaiting participant binding
+          {"// triage:"} {filteredUnmatchedFaces.length} detected faces awaiting participant binding
         </p>
       </div>
 
       {/* Grid of unmatched faces */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {unmatchedFaces.map((face) => {
+        {filteredUnmatchedFaces.map((face) => {
           const photoUrl = api.getPhotoUrl(sessionId, face.photoId);
           const box = parseBoundingBox(face.boundingBox);
 

@@ -4,6 +4,8 @@ import com.whodis.backend.referenceimage.dto.ReferenceImageResponse;
 import com.whodis.backend.referenceimage.entity.ReferenceImage;
 import com.whodis.backend.referenceimage.service.ReferenceImageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -66,6 +68,30 @@ public class ReferenceImageController {
         return ResponseEntity.ok(
                 ReferenceImageResponse.from(image)
         );
+    }
+
+    @GetMapping("/{imageId}/content")
+    public ResponseEntity<InputStreamResource> getReferenceImageContent(
+            @PathVariable UUID sessionId,
+            @PathVariable UUID personId,
+            @PathVariable UUID imageId
+    ) {
+        ReferenceImage image = referenceImageService.getReferenceImage(
+                sessionId,
+                personId,
+                imageId
+        );
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(image.getContentType()))
+                .contentLength(image.getFileSize())
+                .header(
+                        HttpHeaders.CONTENT_DISPOSITION,
+                        "inline; filename=\"" + image.getOriginalFilename() + "\""
+                )
+                .body(new InputStreamResource(
+                        referenceImageService.getReferenceImageContent(image)
+                ));
     }
 
     @DeleteMapping("/{imageId}")
