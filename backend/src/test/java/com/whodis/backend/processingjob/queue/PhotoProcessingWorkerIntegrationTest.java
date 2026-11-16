@@ -103,7 +103,7 @@ class PhotoProcessingWorkerIntegrationTest {
                 .findFirst()
                 .orElseThrow();
 
-        worker.processMessage(message);
+        worker.processMessage(message, false);
 
         ProcessingJob updatedJob = jobService.getJob(job.getId());
 

@@ -183,6 +183,24 @@ Lists all photos containing the person (via matched faces), ordered by face crea
 ]
 ```
 
+### Download Person Photos (ZIP Archive)
+Streams a single ZIP archive containing all distinct original photos associated with the specified person.
+
+- **Method:** `GET`
+- **Path:** `/api/v1/sessions/{sessionId}/people/{personId}/photos/download`
+- **Path Parameters:**
+  - `sessionId` (UUID, required): The session ID.
+  - `personId` (UUID, required): The person ID.
+- **Response Status:** `200 OK`
+- **Response Headers:**
+  - `Content-Type`: `application/zip`
+  - `Content-Disposition`: `attachment; filename="whodis-{person-name}-photos.zip"`
+- **Response Body:** Binary streaming ZIP archive.
+- **Error Responses:**
+  - `404 Not Found` (`PERSON_NOT_FOUND`): Person does not exist or does not belong to this session.
+  - `404 Not Found` (`NOT_FOUND`): Person exists but has zero associated photos.
+  - `410 Gone` (`SESSION_EXPIRED`): Target session has expired.
+
 ---
 
 ## 3. Reference Image Management
@@ -320,8 +338,8 @@ Lists all photos uploaded to the session ordered chronologically by creation tim
 ]
 ```
 
-### Download Photo Binary
-Streams the original raw photo file back to the client.
+### Download Photo Binary (Preview / Inline)
+Streams the original raw photo file back to the client for in-browser rendering.
 
 - **Method:** `GET`
 - **Path:** `/api/v1/sessions/{sessionId}/photos/{photoId}`
@@ -336,6 +354,52 @@ Streams the original raw photo file back to the client.
 - **Response Body:** Binary byte stream of the image file.
 - **Error Responses:**
   - `404 Not Found` if photo does not exist in the session.
+
+### Download Single Photo (Attachment)
+Downloads an individual original photo as a direct file attachment.
+
+- **Method:** `GET`
+- **Path:** `/api/v1/sessions/{sessionId}/photos/{photoId}/download`
+- **Path Parameters:**
+  - `sessionId` (UUID, required)
+  - `photoId` (UUID, required)
+- **Response Status:** `200 OK`
+- **Response Headers:**
+  - `Content-Type`: Image MIME type (e.g. `image/jpeg`)
+  - `Content-Length`: File size in bytes
+  - `Content-Disposition`: `attachment; filename="<original_filename>"` (RFC 5987 UTF-8 encoded)
+- **Response Body:** Binary stream of the original image file.
+- **Error Responses:**
+  - `404 Not Found` (`PHOTO_NOT_FOUND`): Photo does not exist in the session.
+  - `404 Not Found` (`SESSION_NOT_FOUND`): Session does not exist.
+  - `410 Gone` (`SESSION_EXPIRED`): Session has expired.
+
+### Download Bulk Photos (ZIP Archive)
+Streams a single ZIP archive containing multiple selected original photos.
+
+- **Method:** `POST`
+- **Path:** `/api/v1/sessions/{sessionId}/photos/download`
+- **Path Parameters:**
+  - `sessionId` (UUID, required)
+- **Request Headers:** `Content-Type: application/json`
+- **Request Body:**
+```json
+{
+  "photoIds": [
+    "e1966aee-9c16-4ca9-a9a3-5ba257dc8da8",
+    "82e742aa-c116-43b9-a5c9-cfafe9338f02"
+  ]
+}
+```
+- **Response Status:** `200 OK`
+- **Response Headers:**
+  - `Content-Type`: `application/zip`
+  - `Content-Disposition`: `attachment; filename="whodis-photos.zip"`
+- **Response Body:** Binary streaming ZIP archive. Duplicate filenames within the ZIP are deduplicated with numerical suffixes (e.g., `image_1.jpg`), and input photo IDs are deduplicated so no duplicate entries are added.
+- **Error Responses:**
+  - `400 Bad Request` (`BAD_REQUEST`): Empty list of photo IDs.
+  - `404 Not Found` (`PHOTO_NOT_FOUND`): One or more requested photo IDs do not exist or belong to another session.
+  - `410 Gone` (`SESSION_EXPIRED`): Session has expired.
 
 ### Delete Single Photo
 Deletes a photo, all associated `photo_faces`, all `processing_jobs`, and its disk file.

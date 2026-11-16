@@ -1,0 +1,25 @@
+info:
+  name: Download Bulk Photos
+  type: http
+  seq: 12
+
+http:
+  method: POST
+  url: "{{baseUrl}}/sessions/26de1433-9dd5-4a32-83c0-a6db7142d853/photos/download"
+  body:
+    type: json
+    data: |-
+      {
+        "photoIds": [
+          "05b3f71c-7dbb-45c5-8b85-118e0a5afce6",
+          "82e742aa-c116-43b9-a5c9-cfafe9338f02"
+        ]
+      }
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

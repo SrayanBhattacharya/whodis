@@ -175,6 +175,20 @@ export const api = {
   getPhotoUrl: (sessionId: string, photoId: string): string =>
     `${API_PREFIX}/sessions/${sessionId}/photos/${photoId}`,
 
+  // Downloads
+  getPhotoDownloadUrl: (sessionId: string, photoId: string): string =>
+    `${API_PREFIX}/sessions/${sessionId}/photos/${photoId}/download`,
+
+  downloadBulkPhotos: (sessionId: string, photoIds: string[]): Promise<Response> =>
+    fetch(`${API_PREFIX}/sessions/${sessionId}/photos/download`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photoIds }),
+    }),
+
+  getPersonPhotosDownloadUrl: (sessionId: string, personId: string): string =>
+    `${API_PREFIX}/sessions/${sessionId}/people/${personId}/photos/download`,
+
   // Processing Jobs
   getPhotoJobs: (
     sessionId: string,

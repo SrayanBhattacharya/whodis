@@ -61,7 +61,7 @@ public class PhotoProcessingWorker {
         }
     }
 
-    private void processMessage(
+    void processMessage(
             MapRecord<String, Object, Object> message,
             boolean recovered
     ) {

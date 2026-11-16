@@ -96,4 +96,28 @@ public interface PhotoRepository extends JpaRepository<Photo, UUID> {
     ORDER BY p.createdAt ASC
     """)
     List<Photo> findGroupPhotosBySessionId(@Param("sessionId") UUID sessionId);
+
+    @Query("""
+    SELECT p
+    FROM Photo p
+    WHERE p.session.id = :sessionId
+      AND p.id IN :photoIds
+    ORDER BY p.createdAt ASC
+    """)
+    List<Photo> findAllByIdInAndSessionId(
+            @Param("photoIds") List<UUID> photoIds,
+            @Param("sessionId") UUID sessionId
+    );
+
+    @Query("""
+    SELECT DISTINCT pf.photo
+    FROM PhotoFace pf
+    WHERE pf.person.id = :personId
+      AND pf.photo.session.id = :sessionId
+    ORDER BY pf.photo.createdAt ASC
+    """)
+    List<Photo> findDistinctPhotosByPersonIdAndSessionId(
+            @Param("personId") UUID personId,
+            @Param("sessionId") UUID sessionId
+    );
 }

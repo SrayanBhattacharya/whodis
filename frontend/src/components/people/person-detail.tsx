@@ -1,11 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Upload, Trash2, Camera, User } from "lucide-react";
+import { ArrowLeft, Upload, Trash2, Camera, User, Download, Eye, AlertCircle } from "lucide-react";
 import { PersonResponse, PersonPhotoResponse, ReferenceImageResponse } from "@/src/types/api";
 import { api, ApiError } from "@/src/lib/api/client";
 import { Button } from "@/src/components/ui/button";
-import { formatBytes } from "@/src/lib/utils/format";
+import { Modal } from "@/src/components/ui/modal";
+import { formatBytes, formatDate } from "@/src/lib/utils/format";
+import { downloadFile } from "@/src/lib/utils/download";
 
 interface PersonDetailProps {
   sessionId: string;
@@ -19,6 +21,48 @@ export function PersonDetail({ sessionId, person, onBack }: PersonDetailProps) {
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadingRef, setIsUploadingRef] = useState(false);
   const [refUploadError, setRefUploadError] = useState<string | null>(null);
+
+  // Download & inspection states
+  const [isDownloadingPersonZip, setIsDownloadingPersonZip] = useState(false);
+  const [downloadingPhotoId, setDownloadingPhotoId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+  const [selectedPhoto, setSelectedPhoto] = useState<PersonPhotoResponse | null>(null);
+
+  const handleDownloadPersonZip = async () => {
+    if (photos.length === 0 || isDownloadingPersonZip) return;
+    try {
+      setIsDownloadingPersonZip(true);
+      setDownloadError(null);
+      await downloadFile(
+        api.getPersonPhotosDownloadUrl(sessionId, person.id),
+        {},
+        `whodis-${person.name.toLowerCase().replace(/\s+/g, "-")}-photos.zip`
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to download person photos";
+      setDownloadError(msg);
+    } finally {
+      setIsDownloadingPersonZip(false);
+    }
+  };
+
+  const handleDownloadSingle = async (photo: PersonPhotoResponse) => {
+    if (downloadingPhotoId) return;
+    try {
+      setDownloadingPhotoId(photo.photoId);
+      setDownloadError(null);
+      await downloadFile(
+        api.getPhotoDownloadUrl(sessionId, photo.photoId),
+        {},
+        photo.originalFilename
+      );
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to download photo";
+      setDownloadError(msg);
+    } finally {
+      setDownloadingPhotoId(null);
+    }
+  };
 
   useEffect(() => {
     let active = true;
@@ -113,33 +157,62 @@ export function PersonDetail({ sessionId, person, onBack }: PersonDetailProps) {
           </div>
         </div>
 
-        {/* Upload Reference Image Button */}
-        <div>
-          <label className="cursor-pointer">
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              onChange={handleReferenceUpload}
-              className="hidden"
-              disabled={isUploadingRef}
-            />
-            <Button
-              variant="secondary"
-              size="sm"
-              isLoading={isUploadingRef}
-              className="pointer-events-none text-xs"
-            >
-              <Upload className="w-3.5 h-3.5 mr-1.5" />
-              Upload Reference Portrait
-            </Button>
-          </label>
-          {refUploadError && (
-            <p className="text-xs text-red-400 mt-2 font-mono">
-              [error] {refUploadError}
-            </p>
-          )}
+        {/* Header Actions: Upload Reference Image & Download Person Photos */}
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={handleDownloadPersonZip}
+            disabled={photos.length === 0 || isDownloadingPersonZip}
+            isLoading={isDownloadingPersonZip}
+            className="text-xs"
+          >
+            <Download className="w-3.5 h-3.5 mr-1.5" />
+            Download Photos ({photos.length})
+          </Button>
+
+          <div>
+            <label className="cursor-pointer">
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={handleReferenceUpload}
+                className="hidden"
+                disabled={isUploadingRef}
+              />
+              <Button
+                variant="secondary"
+                size="sm"
+                isLoading={isUploadingRef}
+                className="pointer-events-none text-xs"
+              >
+                <Upload className="w-3.5 h-3.5 mr-1.5" />
+                Upload Reference Portrait
+              </Button>
+            </label>
+            {refUploadError && (
+              <p className="text-xs text-red-400 mt-2 font-mono">
+                [error] {refUploadError}
+              </p>
+            )}
+          </div>
         </div>
       </div>
+
+      {downloadError && (
+        <div className="p-3 bg-red-950/20 border border-red-900/30 rounded flex items-center justify-between text-xs text-red-200">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 text-red-400 shrink-0" />
+            <span>[error] {downloadError}</span>
+          </div>
+          <button
+            onClick={() => setDownloadError(null)}
+            className="text-red-400 hover:text-white ml-4 font-mono text-[10px]"
+          >
+            [DISMISS]
+          </button>
+        </div>
+      )}
 
       {/* Reference Portraits Section */}
       <div className="space-y-3">
@@ -236,7 +309,10 @@ export function PersonDetail({ sessionId, person, onBack }: PersonDetailProps) {
                   key={`${item.photoId}-${idx}`}
                   className="group relative bg-[#0a0a0a] border border-[#222222] rounded overflow-hidden flex flex-col hover:border-[#555555] transition-all"
                 >
-                  <div className="aspect-[4/3] w-full bg-[#050505] overflow-hidden relative">
+                  <div
+                    className="aspect-[4/3] w-full bg-[#050505] overflow-hidden relative cursor-pointer"
+                    onClick={() => setSelectedPhoto(item)}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={photoUrl}
@@ -250,6 +326,31 @@ export function PersonDetail({ sessionId, person, onBack }: PersonDetailProps) {
                         SIM: {item.similarityScore.toFixed(3)}
                       </div>
                     )}
+
+                    {/* Hover actions */}
+                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex items-center justify-center gap-2 pointer-events-none">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedPhoto(item);
+                        }}
+                        className="p-2 bg-white text-black rounded hover:bg-[#e0e0e0] transition-colors cursor-pointer pointer-events-auto"
+                        title="Inspect Photo"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDownloadSingle(item);
+                        }}
+                        disabled={downloadingPhotoId === item.photoId}
+                        className="p-2 bg-[#1a1a1a] text-white border border-[#333333] rounded hover:bg-[#2a2a2a] transition-colors cursor-pointer pointer-events-auto"
+                        title="Download Original Photo"
+                      >
+                        <Download className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   </div>
                   <div className="p-2.5 bg-[#0a0a0a] text-xs">
                     <p className="truncate text-[#cccccc]">
@@ -265,6 +366,46 @@ export function PersonDetail({ sessionId, person, onBack }: PersonDetailProps) {
           </div>
         )}
       </div>
+
+      {/* Lightbox / Inspector Modal */}
+      {selectedPhoto && (
+        <Modal
+          isOpen={!!selectedPhoto}
+          onClose={() => setSelectedPhoto(null)}
+          title={selectedPhoto.originalFilename}
+          maxWidth="4xl"
+        >
+          <div className="space-y-4 font-mono text-xs">
+            <div className="bg-black rounded flex items-center justify-center min-h-[400px] max-h-[70vh] overflow-hidden border border-[#222222]">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={api.getPhotoUrl(sessionId, selectedPhoto.photoId)}
+                alt={selectedPhoto.originalFilename}
+                className="max-h-[70vh] max-w-full object-contain"
+              />
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-4 pt-2 text-[#888888]">
+              <div className="flex items-center gap-4">
+                <span>SIZE: {formatBytes(selectedPhoto.fileSize)}</span>
+                <span>MIME: {selectedPhoto.contentType}</span>
+                <span>TS: {formatDate(selectedPhoto.createdAt)}</span>
+                {selectedPhoto.similarityScore != null && (
+                  <span>SIM: {selectedPhoto.similarityScore.toFixed(3)}</span>
+                )}
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => handleDownloadSingle(selectedPhoto)}
+                isLoading={downloadingPhotoId === selectedPhoto.photoId}
+              >
+                <Download className="w-3.5 h-3.5 mr-1.5" />
+                Download Original
+              </Button>
+            </div>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
