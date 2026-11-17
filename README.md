@@ -93,27 +93,39 @@ Detailed documentation is available in the [`docs/`](docs/) directory:
 
 ## Quick-Start Instructions
 
-### 1. Start PostgreSQL & Redis
+### 1. Launch with Docker Compose (Recommended)
+
+Run the entire application stack (frontend, backend, ML inference service, database, Redis queue, and Nginx reverse proxy):
+
 ```bash
-docker compose up -d
+docker compose up --build -d
 ```
 
-### 2. Start the ML Service
-```bash
-cd ml-service
-uv sync
-uv run uvicorn ml_service.main:app --host 0.0.0.0 --port 8001 --reload
+Once running, access the application directly at:
+```text
+http://localhost
 ```
 
-### 3. Start the Spring Boot Backend
+All 6 services communicate via an internal isolated network (`whodis-network`), and Nginx acts as the single entrypoint on port `80`.
+
+To view service logs:
 ```bash
-cd backend
-./mvnw spring-boot:run
+docker compose logs -f
 ```
 
-Verify services:
-- Backend Health: `GET http://localhost:8080/actuator/health`
-- ML Service Health: `GET http://localhost:8001/health`
+To stop all services:
+```bash
+docker compose down
+```
+
+To reset the entire stack and purge volumes (database, files, and caches):
+```bash
+docker compose down -v
+```
+
+---
+
+### 2. Manual Local Development (Optional)
 
 ---
 

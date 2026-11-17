@@ -1,41 +1,135 @@
 services:
-
   postgres:
-    image: postgres:18
+    image: postgres:18-alpine
     container_name: whodis-postgres
-
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: whodis
-      POSTGRES_USER: whodis
-      POSTGRES_PASSWORD: whodis
-
-    ports:
-      - "5432:5432"
-
+      POSTGRES_DB: ${POSTGRES_DB:-whodis}
+      POSTGRES_USER: ${POSTGRES_USER:-whodis}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-whodis}
     volumes:
       - postgres_data:/var/lib/postgresql
-
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U whodis -d whodis"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-whodis} -d ${POSTGRES_DB:-whodis}"]
       interval: 5s
       timeout: 5s
       retries: 5
+    networks:
+      - whodis-network
 
   redis:
     image: redis:8-alpine
     container_name: whodis-redis
     restart: unless-stopped
-    ports:
-      - "6379:6379"
+    command: redis-server --appendonly yes
     volumes:
       - redis_data:/data
-    command: redis-server --appendonly yes
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - whodis-network
+
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: whodis-ml-service
+    restart: unless-stopped
+    volumes:
+      - ml_models:/home/whodis/.insightface
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 3
+    networks:
+      - whodis-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: whodis-backend
+    restart: unless-stopped
+    environment:
+      DB_URL: ${DB_URL:-jdbc:postgresql://postgres:5432/whodis}
+      DB_USERNAME: ${DB_USERNAME:-whodis}
+      DB_PASSWORD: ${DB_PASSWORD:-whodis}
+      REDIS_HOST: ${REDIS_HOST:-redis}
+      REDIS_PORT: ${REDIS_PORT:-6379}
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://ml-service:8001}
+      STORAGE_ROOT: ${STORAGE_ROOT:-/app/storage}
+      SESSION_DURATION: ${SESSION_DURATION:-48h}
+      SESSION_CLEANUP_INTERVAL: ${SESSION_CLEANUP_INTERVAL:-300000}
+    volumes:
+      - backend_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      ml-service:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 35s
+      retries: 5
+    networks:
+      - whodis-network
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: whodis-frontend
+    restart: unless-stopped
+    environment:
+      BACKEND_INTERNAL_URL: ${BACKEND_INTERNAL_URL:-http://backend:8080}
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:3000/', (res) => { process.exit(res.statusCode === 200 ? 0 : 1); }).on('error', () => process.exit(1));"]
+      interval: 10s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    networks:
+      - whodis-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: whodis-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - ./docker/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:80/ || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - whodis-network
 
 volumes:
   postgres_data:
   redis_data:
+  backend_storage:
+  ml_models:
+
+networks:
+  whodis-network:
+    driver: bridge
