@@ -91,9 +91,7 @@ Detailed documentation is available in the [`docs/`](docs/) directory:
 
 ---
 
-## Quick-Start Instructions
-
-### 1. Launch with Docker Compose (Recommended)
+## Quick-Start Guide
 
 Run the entire application stack (frontend, backend, ML inference service, database, Redis queue, and Nginx reverse proxy):
 
@@ -108,40 +106,15 @@ http://localhost
 
 All 6 services communicate via an internal isolated network (`whodis-network`), and Nginx acts as the single entrypoint on port `80`.
 
-To view service logs:
-```bash
-docker compose logs -f
-```
-
-To stop all services:
-```bash
-docker compose down
-```
-
-To reset the entire stack and purge volumes (database, files, and caches):
-```bash
-docker compose down -v
-```
-
----
-
-### 2. Manual Local Development (Optional)
-
----
-
-## Current Status
-
-- [x] Ephemeral session lifecycle and automated background cleanup scheduler
-- [x] Person registration and participant management
-- [x] Strict image validation (MIME detection and pixel dimension constraints)
-- [x] Synchronous reference portrait processing with 512-dim embedding extraction
-- [x] Batch group photo uploads and local filesystem storage
-- [x] Asynchronous processing engine using Redis Streams
-- [x] InsightFace `buffalo_l` face detection and feature extraction
-- [x] Cosine similarity face matching with confidence thresholds and minimum margin evaluation
-- [x] Manual assignment API for unmatched faces
-- [x] Full Flyway relational migrations (V1 through V9)
-- [x] Comprehensive documentation suite in `docs/`
-- [ ] Frontend integration with Next.js UI
-- [ ] Results export (ZIP archive generation)
-- [ ] Production containerization and CI/CD pipelines
+- **View logs:**
+  ```bash
+  docker compose logs -f
+  ```
+- **Stop services:**
+  ```bash
+  docker compose down
+  ```
+- **Reset stack and purge data volumes:**
+  ```bash
+  docker compose down -v
+  ```
